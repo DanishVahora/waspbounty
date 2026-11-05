@@ -1,0 +1,216 @@
+/* ============================================================================
+   WASP BOUNTY DESIGN SYSTEM  ·  "COURT PAPER"
+   ----------------------------------------------------------------------------
+   One theme. Light only. Used by BOTH the build tracker and the product app.
+
+   CONCEPT
+   A bounty claim is a document: a warm sheet of paper, ink, a stamp that
+   lands slightly crooked, a perforated tear-off line, a case number in a
+   monospaced hand. This system renders that as a precise modern interface.
+
+   It is derived from danishvahora.vercel.app - warm paper ground, ink black,
+   amber accent, hard offset shadow, faint blueprint grid, mono annotations -
+   and deepened with an editorial serif and a set of archival stamp inks.
+
+   DELIBERATELY ABSENT (these are the machine-made tells):
+   indigo-to-purple gradients, Inter, uniform 16px+ radii on everything,
+   glassmorphism, blur shadows as the only elevation, emoji as bullets,
+   three identical feature cards in a row, motion with no cause.
+   ========================================================================= */
+
+/* ---------- 1. FACES (self-hosted; zero network at runtime) -------------- */
+@font-face{font-family:"Geist";src:url("fonts/geist-var.woff2") format("woff2");font-weight:300 800;font-display:swap;font-style:normal}
+@font-face{font-family:"Geist Mono";src:url("fonts/geist-mono-var.woff2") format("woff2");font-weight:300 700;font-display:swap;font-style:normal}
+@font-face{font-family:"Newsreader";src:url("fonts/newsreader-var.woff2") format("woff2");font-weight:300 700;font-display:swap;font-style:normal}
+@font-face{font-family:"Newsreader";src:url("fonts/newsreader-italic-var.woff2") format("woff2");font-weight:300 600;font-display:swap;font-style:italic}
+
+:root{
+  /* ---------- 2. GROUND AND INK ----------------------------------------- */
+  --paper:#F7F3EA;          /* the sheet */
+  --paper-2:#F0E9DB;        /* sunken band / striped row */
+  --paper-3:#E9E0CD;        /* deepest paper, used sparingly */
+  --card:#FFFFFF;           /* a document laid on the sheet */
+  --ink:#121212;            /* headlines, borders, the stamp */
+  --ink-2:#3D3A35;          /* body copy */
+  --ink-3:#6B655C;          /* captions, metadata */
+  --ink-4:#9A9287;          /* placeholder, disabled */
+  --rule:#E4DCCC;           /* hairline */
+  --rule-2:#CFC4AE;         /* emphatic hairline */
+  --grid:rgba(18,18,18,.045);
+
+  /* ---------- 3. STAMP INKS ----------------------------------------------
+     Four inks, each with a wash. Desaturated for a warm ground: saturated web
+     colours vibrate against #F7F3EA and instantly read as a template.       */
+  --amber:#F59E0B;    --amber-ink:#8A5A05;  --amber-wash:#FDF0D4;   /* action, running */
+  --seal:#1E6B4F;     --seal-ink:#14503B;   --seal-wash:#E2EFE8;    /* done, valid, refunded */
+  --oxide:#B23A2F;    --oxide-ink:#8A2A21;  --oxide-wash:#F8E4E1;   /* slashed, blocked, risk */
+  --indigo:#27418C;   --indigo-ink:#1C2F67; --indigo-wash:#E4E9F7;  /* planned, info */
+
+  /* track identities */
+  --ens:#27418C; --zerog:#121212; --arkiv:#1E6B4F;
+
+  /* ---------- 4. TYPE ----------------------------------------------------- */
+  --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --serif:"Newsreader",ui-serif,Georgia,"Times New Roman",serif;
+
+  --t-display:clamp(2.45rem,1.5rem + 3.1vw,4.1rem);
+  --t-h1:clamp(1.75rem,1.3rem + 1.4vw,2.35rem);
+  --t-h2:1.4375rem;
+  --t-h3:1.0625rem;
+  --t-body:.9375rem;   /* 15px - denser than the 16px default; this is a console */
+  --t-sm:.8125rem;     /* 13 */
+  --t-xs:.6875rem;     /* 11 - uppercase label only, never prose */
+
+  /* ---------- 5. SPACE (4px base) ---------------------------------------- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px;
+  --s7:32px; --s8:40px; --s9:56px; --s10:72px; --s11:96px;
+
+  /* ---------- 6. FORM ----------------------------------------------------- */
+  --r-sm:5px; --r:8px; --r-lg:12px; --r-pill:999px;
+  --bd:1px solid var(--rule);
+  --bd-ink:1.5px solid var(--ink);
+
+  /* Elevation is a STAMP, not a blur. Paper does not float; it is pressed. */
+  --press:2px 2px 0 var(--ink);
+  --press-lg:3px 3px 0 var(--ink);
+  --press-amber:3px 3px 0 var(--amber);
+  --lift:0 1px 2px rgba(18,18,18,.05),0 10px 28px -16px rgba(18,18,18,.22);
+
+  /* ---------- 7. MOTION --------------------------------------------------- */
+  --ease:cubic-bezier(.2,.8,.25,1);      /* decelerate - UI settling */
+  --ease-in:cubic-bezier(.5,0,.75,0);
+  --thunk:cubic-bezier(.34,1.42,.64,1);  /* a stamp hitting paper */
+  --d1:110ms; --d2:200ms; --d3:380ms; --d4:700ms;
+
+  --maxw:1180px;
+}
+
+/* ---------- 8. RESET (only what earns its place) -------------------------- */
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:108px}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+body{
+  font-family:var(--sans);
+  font-size:var(--t-body);
+  line-height:1.55;
+  color:var(--ink-2);
+  background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+/* Blueprint grid + paper grain. Two layers, both nearly invisible - you should
+   feel the texture before you notice it. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(ellipse 120% 85% at 50% 0%,#000 35%,transparent 100%);
+  mask-image:radial-gradient(ellipse 120% 85% at 50% 0%,#000 35%,transparent 100%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:url("assets/grain.svg");
+  mix-blend-mode:multiply;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer;padding:0}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:3px}
+::selection{background:var(--amber);color:var(--ink)}
+
+/* ---------- 9. TYPE PRIMITIVES -------------------------------------------- */
+.display{
+  font-family:var(--serif);font-weight:500;font-size:var(--t-display);
+  line-height:1.03;letter-spacing:-.022em;color:var(--ink);
+  font-variation-settings:"opsz" 60;text-wrap:balance;
+}
+.h1{font-size:var(--t-h1);font-weight:650;letter-spacing:-.021em;color:var(--ink);line-height:1.14;text-wrap:balance}
+.h2{font-family:var(--serif);font-weight:500;font-size:var(--t-h2);letter-spacing:-.012em;color:var(--ink);font-variation-settings:"opsz" 32;line-height:1.2}
+.h3{font-size:var(--t-h3);font-weight:600;letter-spacing:-.012em;color:var(--ink)}
+.aside{font-family:var(--serif);font-style:italic;font-size:1.0625rem;color:var(--ink-3);line-height:1.5}
+.lede{font-size:1.0625rem;line-height:1.62;color:var(--ink-2);max-width:62ch;text-wrap:pretty}
+/* slashed-zero everywhere a number or an identifier lives: "0G" must never read
+   as the letters O-G, and a hash with an unslashed zero is a support ticket. */
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums slashed-zero}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums slashed-zero;letter-spacing:-.02em}
+/* The small-caps label. Uppercase + tracking is ONLY ever used here, at 11px,
+   never on a heading - that is the giveaway. */
+.label{
+  font-family:var(--mono);font-size:var(--t-xs);font-weight:500;
+  text-transform:uppercase;letter-spacing:.11em;color:var(--ink-3);
+}
+.muted{color:var(--ink-3)}
+.dim{color:var(--ink-4)}
+
+/* ---------- 10. SURFACES --------------------------------------------------- */
+.sheet{background:var(--card);border:var(--bd);border-radius:var(--r);position:relative}
+.sheet--pressed{border:var(--bd-ink);box-shadow:var(--press)}
+/* a perforated tear-line, like the stub of a bond receipt */
+.perf{border:0;border-top:1.5px dashed var(--rule-2);margin:var(--s5) 0;position:relative}
+.perf::before,.perf::after{
+  content:"";position:absolute;top:-5px;width:9px;height:9px;border-radius:50%;
+  background:var(--paper);border:1.5px solid var(--rule-2);
+}
+.perf::before{left:-5px}
+.perf::after{right:-5px}
+.rule{border:0;border-top:1px solid var(--rule);margin:var(--s4) 0}
+
+/* ---------- 11. THE STAMP ---------------------------------------------------
+   The one piece of ornament in the system. It carries status, it lands slightly
+   crooked, and it is the only element allowed a rotation.                    */
+.stamp{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:var(--t-xs);font-weight:600;
+  text-transform:uppercase;letter-spacing:.09em;
+  padding:4px 9px 3px;border-radius:var(--r-sm);
+  border:1.5px solid currentColor;white-space:nowrap;line-height:1.35;
+}
+.stamp--done{color:var(--seal-ink);background:var(--seal-wash);border-color:var(--seal)}
+.stamp--run{color:var(--amber-ink);background:var(--amber-wash);border-color:var(--amber)}
+.stamp--block{color:var(--oxide-ink);background:var(--oxide-wash);border-color:var(--oxide)}
+.stamp--todo{color:var(--ink-3);background:transparent;border-color:var(--rule-2);border-style:dashed}
+.stamp--info{color:var(--indigo-ink);background:var(--indigo-wash);border-color:var(--indigo)}
+.stamp--cocked{transform:rotate(-2.4deg)}
+
+/* ---------- 12. CONTROLS ----------------------------------------------------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  font-size:var(--t-sm);font-weight:560;letter-spacing:-.005em;
+  padding:9px 15px;border-radius:var(--r-sm);
+  border:1.5px solid var(--ink);background:var(--card);color:var(--ink);
+  box-shadow:var(--press);
+  transition:transform var(--d1) var(--ease),box-shadow var(--d1) var(--ease),background var(--d1) linear;
+}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.btn--primary{background:var(--amber);border-color:var(--ink)}
+.btn--primary:hover{background:#FFB224}
+.btn--ghost{box-shadow:none;border-color:var(--rule-2);background:transparent;color:var(--ink-2)}
+.btn--ghost:hover{transform:none;box-shadow:none;border-color:var(--ink);color:var(--ink);background:var(--card)}
+.btn[disabled]{opacity:.42;pointer-events:none}
+.btn--sm{padding:6px 11px;font-size:var(--t-xs)}
+
+/* ---------- 13. METER --------------------------------------------------------- */
+.meter{height:7px;border-radius:var(--r-pill);background:var(--paper-3);overflow:hidden;border:1px solid var(--rule)}
+.meter__fill{height:100%;background:var(--amber);border-radius:inherit;transition:width var(--d4) var(--ease)}
+.meter__fill--done{background:var(--seal)}
+
+/* ---------- 14. LAYOUT ---------------------------------------------------------- */
+.wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,4vw,32px);position:relative;z-index:1}
+.stack>*+*{margin-top:var(--s3)}
+.row{display:flex;align-items:center;gap:var(--s3)}
+.row--between{justify-content:space-between}
+.row--wrap{flex-wrap:wrap}
+.grow{flex:1 1 auto;min-width:0}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

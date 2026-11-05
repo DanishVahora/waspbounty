@@ -1,0 +1,31 @@
+{
+  "name": "waspbounty",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A refundable bond on security reports to open source projects, and a reputation tier that travels between projects.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.10.0"
+  },
+  "scripts": {
+    "wallet": "node --env-file=.env scripts/wallet.mjs",
+    "arkiv:check": "node --env-file=.env scripts/arkiv-check.mjs",
+    "arkiv:write": "node --env-file=.env scripts/arkiv-write.mjs",
+    "arkiv:read": "node --env-file=.env scripts/arkiv-read.mjs",
+    "ens:probe": "node --env-file=.env scripts/ens-probe.mjs",
+    "zerog:models": "node --env-file=.env scripts/zerog-models.mjs",
+    "serve": "node --env-file=.env app/server.mjs",
+    "compile": "node scripts/compile.mjs",
+    "chain": "hardhat node",
+    "test": "node --test test/waspbounty.test.mjs"
+  },
+  "dependencies": {
+    "@arkiv-network/sdk": "^1.0.1",
+    "viem": "^2.38.2"
+  },
+  "devDependencies": {
+    "hardhat": "^2.29.1",
+    "solc": "^0.8.28"
+  }
+}
