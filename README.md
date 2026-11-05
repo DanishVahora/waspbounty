@@ -191,8 +191,31 @@ USDT-style tokens that return nothing from `transfer`.
 slash routing, ghost claims, the tier waiver at each level, steward-only pool
 withdrawal, and the `EACInvalidRoleBitmap` rejection.
 
-**Deployed addresses:** not yet deployed to Sepolia at the time of writing — this
-section will carry the addresses once it is.
+### Deployed — Sepolia (chain 11155111)
+
+| | address |
+|---|---|
+| **WaspBounty** | [`0xb9e8e49725d25a23e136d2e5d45858d1eb6abcac`](https://sepolia.etherscan.io/address/0xb9e8e49725d25a23e136d2e5d45858d1eb6abcac) |
+| **MockToken** (demo bond currency) | [`0xcc6763c579f0d612ff02934d6c159bde3ed90acb`](https://sepolia.etherscan.io/address/0xcc6763c579f0d612ff02934d6c159bde3ed90acb) |
+| **ENSv2 ETHRegistry** (not ours — live) | [`0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4`](https://sepolia.etherscan.io/address/0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4) |
+| Deployer / triage steward | `0x4CA8176777D44B76235684b63334088C618994e4` |
+
+**The contract is pointed at the real ENSv2 registry, not a mock.** `bondFor()`
+reaches live chain state to decide whether a reporter's tier waives the bond.
+You can check that yourself without spending anything:
+
+```bash
+cast call 0xb9e8e49725d25a23e136d2e5d45858d1eb6abcac \
+  "bondFor(address,uint256)(uint256)" \
+  0x0000000000000000000000000000000000000001 0 \
+  --rpc-url https://ethereum-sepolia-rpc.publicnode.com
+```
+
+Returns `0` — a reporter who has never submitted posts no bond. **Reporting is
+free by default**, which is the whole design, enforced on-chain.
+
+`MockToken` is ours and exists because Sepolia has no canonical stablecoin. We
+say so rather than implying a real asset is at stake.
 
 ---
 
