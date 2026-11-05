@@ -40,7 +40,7 @@ const BASE_BOND = parseEther("0.01");
 const POOL = parseEther("1");
 const WINDOW = 72n * 60n * 60n;
 const REPO_ID = keccak256(toHex("curl/curl"));
-const ARKIV_KEY = keccak256(toHex("zmt-entity-1"));
+const ARKIV_KEY = keccak256(toHex("wb-entity-1"));
 const LABEL = BigInt(keccak256(toHex("newcomer")));
 
 const ROLE_TIER_1 = 1n << 40n;

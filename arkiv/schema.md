@@ -22,7 +22,7 @@ The disclosure record. **Expires on day 90** — the Google Project Zero norm.
 
 | column | type | indexed | why |
 |---|---|:--:|---|
-| `caseId` | `str` | ✓ | our id, e.g. `zmt-7c41ae`; joins the other three entities |
+| `caseId` | `str` | ✓ | our id, e.g. `wb-7c41ae`; joins the other three entities |
 | `repo` | `str` | ✓ | `curl/curl` — the board filters by project |
 | `issue` | `u64` | ✓ | GitHub issue number |
 | `reporter` | `addr` | ✓ | who posted the bond |

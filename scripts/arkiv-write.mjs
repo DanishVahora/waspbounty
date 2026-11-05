@@ -29,7 +29,7 @@ const plaintext = JSON.stringify({
 });
 const sealed = Buffer.concat([randomBytes(16), Buffer.from(plaintext, "utf8")]); // placeholder envelope
 const digest = createHash("sha256").update(plaintext).digest("hex");
-const caseId = "zmt-" + randomBytes(4).toString("hex");
+const caseId = "wb-" + randomBytes(4).toString("hex");
 
 const now = Date.now();
 const disclosureAt = now + days * 86_400_000;

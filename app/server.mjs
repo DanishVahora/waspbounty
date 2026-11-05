@@ -88,15 +88,15 @@ async function liveStatus() {
    Used only until Arkiv has real entities. Every item carries simulated: true
    and the UI prints that badge; nothing here is ever shown as on-chain. */
 const DEMO = [
-  { caseId: "zmt-demo-01", repo: "curl/curl", issue: 9114, severity: "high", lane: "priority",
+  { caseId: "wb-demo-01", repo: "curl/curl", issue: 9114, severity: "high", lane: "priority",
     title: "Heap overflow in ftp_parse_resp() when PASV reply exceeds 512 bytes",
     body: "A crafted PASV response of 600 bytes causes an unchecked memcpy into a fixed 512-byte buffer in lib/ftp.c. Reachable by any client following a redirect to an attacker-controlled FTP server. PoC attached.",
     openedAt: Date.now() - 41 * 60000, daysLeft: 88, simulated: true },
-  { caseId: "zmt-demo-02", repo: "curl/curl", issue: 9115, severity: "critical", lane: "free",
+  { caseId: "wb-demo-02", repo: "curl/curl", issue: 9115, severity: "critical", lane: "free",
     title: "Remote code execution via crafted Set-Cookie in curl_easy_perform",
     body: "curl is vulnerable to RCE through the function curl_cookie_parse_secure() which fails to bound-check the domain attribute. This affects all versions since 7.0. Immediate patch required.",
     openedAt: Date.now() - 12 * 60000, daysLeft: 90, simulated: true },
-  { caseId: "zmt-demo-03", repo: "curl/curl", issue: 9116, severity: "medium", lane: "priority",
+  { caseId: "wb-demo-03", repo: "curl/curl", issue: 9116, severity: "medium", lane: "priority",
     title: "Possible off-by-one in the HTTP/3 header table when nghttp3 returns early",
     body: "I might be misreading this, but in lib/vquic/curl_ngtcp2.c the loop bound looks like it can read one entry past the table when nghttp3_conn_read_stream returns a short count. I could not reproduce a crash.",
     openedAt: Date.now() - 95 * 60000, daysLeft: 86, simulated: true },

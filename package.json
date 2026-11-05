@@ -18,7 +18,8 @@
     "serve": "node --env-file=.env app/server.mjs",
     "compile": "node scripts/compile.mjs",
     "chain": "hardhat node",
-    "test": "node --test test/waspbounty.test.mjs"
+    "test": "node --test test/waspbounty.test.mjs",
+    "seed": "node --env-file=.env scripts/seed.mjs"
   },
   "dependencies": {
     "@arkiv-network/sdk": "^1.0.1",

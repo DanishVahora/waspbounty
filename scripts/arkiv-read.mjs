@@ -29,7 +29,7 @@ await run("byRepo(curl/curl)", () => byRepo(reader, "curl/curl"));
 await run("ghostCandidates", () => ghostCandidates(reader));
 await run("tiersFor(dev EOA)", () => tiersFor(reader, account.address));
 await run("countOpen", () => countOpen(reader));
-await run("verdictFor(none)", () => verdictFor(reader, "zmt-nonexistent"));
+await run("verdictFor(none)", () => verdictFor(reader, "wb-nonexistent"));
 
 if (rows?.length) {
   console.log("\n  open reports, soonest deadline first:");

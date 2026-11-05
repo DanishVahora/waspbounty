@@ -22,7 +22,7 @@ import { defineSchema, str, bytes, u64, u256, i32, addr, bool } from "@arkiv-net
 /* The disclosure record. Expires on day 90 — the Project Zero norm.
    Letting it die is silent; extending it is a public act. */
 export const Report = defineSchema("wasp.report", {
-  caseId: str().indexed(),        // our id, e.g. "zmt-7c41ae"
+  caseId: str().indexed(),        // our id, e.g. "wb-7c41ae"
   repo: str().indexed(),          // "curl/curl"
   issue: u64().indexed(),         // github issue number
   reporter: addr().indexed(),
