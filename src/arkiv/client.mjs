@@ -81,6 +81,28 @@ export function clients(account, accessKey) {
   }
 }
 
+/* Reads need an access key and nothing else — no account, no signer, no
+   private key anywhere in the process.
+
+   This exists because the public demo should not be holding a wallet. The
+   board, the docket and every query a judge runs are reads; binding them to a
+   signer meant a deployment either carried a funded key or showed empty
+   panels. Now it can do neither. Writes are still refused without an account,
+   loudly, rather than silently doing nothing. */
+export function readerOnly(accessKey) {
+  try {
+    const chain = rabdi({ accessKey });
+    const transport = http(undefined, {
+      retryCount: 0,
+      timeout: 15000,
+      fetchOptions: { cache: "no-store", redirect: "error" },
+    });
+    return { chain, reader: createPublicClient({ chain, transport, cacheTime: 0 }), wallet: null };
+  } catch (error) {
+    throw sanitizedFailure(error);
+  }
+}
+
 export function accountFromEnv() {
   const pk = process.env.DEPLOYER_PRIVATE_KEY;
   if (!pk || !/^0x[0-9a-fA-F]{64}$/.test(pk)) {

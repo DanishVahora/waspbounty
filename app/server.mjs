@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 
-import { clients, accountFromEnv, accessKeyFromEnv, scrub } from "../src/arkiv/client.mjs";
+import { clients, readerOnly, accountFromEnv, accessKeyFromEnv, scrub } from "../src/arkiv/client.mjs";
 import { expiringSoon, ghostCandidates, countOpen, watchExtensions, repoLanes, laneFor } from "../src/arkiv/board.mjs";
 import { repoIdFor, verifyRepoControl, repoExists, canonicalSlug, PROOF_PATH, GitHubError } from "../src/github/identity.mjs";
 import { repoSignals, securityPosture, assessPromise } from "../src/github/signals.mjs";
@@ -33,13 +33,26 @@ const MIME = {
   ".svg": "image/svg+xml", ".woff2": "font/woff2",
 };
 
-/* ---------- backends ------------------------------------------------------- */
+/* ---------- backends -------------------------------------------------------
+   The signer is OPTIONAL. Everything a visitor can do here is a read, so the
+   reader is built from the access key alone and a missing private key costs
+   nothing on screen. That is what lets the public demo run without a wallet
+   on the host: there is no key to leak and no balance to drain.
+
+   With a key we also keep an account, so the same build can write entities
+   locally. Without one, writes are refused loudly rather than silently
+   doing nothing. */
 let reader = null, account = null, arkivError = null;
 try {
-  account = accountFromEnv();
-  reader = clients(account, accessKeyFromEnv()).reader;
+  const accessKey = accessKeyFromEnv();
+  try {
+    account = accountFromEnv();
+  } catch {
+    account = null;   /* read-only deployment — not an error */
+  }
+  reader = account ? clients(account, accessKey).reader : readerOnly(accessKey).reader;
 } catch (e) {
-  arkivError = scrub(e);
+  arkivError = scrub(e);   /* no access key: reads genuinely cannot work */
 }
 
 let teeCard = null, teeError = null;
@@ -65,10 +78,16 @@ async function liveStatus() {
   if (reader) {
     try {
       const [id, block] = await Promise.all([reader.getChainId(), reader.getBlockNumber()]);
-      const bal = await reader.getBalance({ address: account.address });
+      /* No signer on a read-only deployment, so there is no balance to
+         report. `funded` stays true because nothing here needs funding —
+         reporting "unfunded" would make a healthy public demo look broken. */
+      const bal = account ? await reader.getBalance({ address: account.address }) : null;
       arkiv = {
         connected: true, chainId: id, block: block.toString(),
-        signer: account.address, funded: bal > 0n, balanceWei: bal.toString(),
+        signer: account ? account.address : null,
+        readOnly: !account,
+        funded: account ? bal > 0n : true,
+        balanceWei: bal === null ? null : bal.toString(),
       };
     } catch (e) { arkiv = { connected: false, reason: scrub(e) }; }
   }
