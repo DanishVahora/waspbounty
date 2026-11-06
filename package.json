@@ -21,7 +21,8 @@
     "chain": "hardhat node",
     "test": "node --test test/waspbounty.test.mjs",
     "seed": "node --env-file=.env scripts/seed.mjs",
-    "deploy": "node --env-file=.env scripts/deploy.mjs"
+    "deploy": "node --env-file=.env scripts/deploy.mjs",
+    "swarm:check": "node --env-file=.env scripts/swarm-check.mjs"
   },
   "dependencies": {
     "@arkiv-network/sdk": "^1.0.1",

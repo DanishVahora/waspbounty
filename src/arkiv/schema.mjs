@@ -34,7 +34,22 @@ export const Report = defineSchema("wasp.report", {
   bondWei: u256(),
   digest: str(),                  // sha256 hex of the sealed payload (64 chars)
   title: str(),                   // truncated to 128 bytes on write
-  sealed: bytes(),                // the report itself, encrypted before storing
+
+  /* The body lives on Swarm, not here. `swarmRef` is a 64-hex Swarm reference
+     to AES-256-GCM ciphertext we encrypted before uploading.
+
+     Never a 128-hex reference: that is what Swarm returns when IT encrypts, and
+     its second half is the decryption key. Arkiv entities are public, so
+     storing one here would publish the key beside the pointer. upload() refuses
+     any reference that is not 64 chars for exactly this reason.
+
+     Optional because entities written before Swarm existed do not have it —
+     changing a schema definition does not rewrite entities already on chain. */
+  swarmRef: str().indexed().optional(),
+
+  /* Kept for those earlier entities, and as the fallback when no postage batch
+     is configured. A report is never dropped just because Swarm is unreachable. */
+  sealed: bytes(),
 });
 
 /* The maintainer's promise. Expires at the response deadline.
