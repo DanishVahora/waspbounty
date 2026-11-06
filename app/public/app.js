@@ -86,6 +86,24 @@ function paintStatus() {
     m.className = z.connected ? "pill pill--live" : "pill pill--sim";
     m.textContent = `${z.model} · ${z.verifiability}${z.teeType ? "/" + z.teeType : ""}${z.connected ? "" : " · no key"}`;
   }
+
+  /* the chain pill links to the contract, so the claim is one click from proof */
+  const c = LIVE.contracts, cp = $("#chainPill");
+  if (c) {
+    cp.hidden = false;
+    cp.className = c.connected ? "pill pill--live" : "pill pill--sim";
+    cp.textContent = c.connected
+      ? `Sepolia · ${c.codeBytes} bytes${c.ensIsLiveRegistry ? " · live ENSv2" : ""}`
+      : "contract not reachable";
+    if (c.explorer) cp.href = c.explorer;
+  }
+
+  /* The lane price is the contract's baseBond, not a number in the markup. */
+  const lp = $("#lanePrice");
+  if (lp && c?.connected) lp.textContent = `refundable · up to ${c.baseBond} ${TOKEN}`;
+  else if (lp) lp.textContent = "refundable · chain unreachable";
+
+  if (!$("#reporter").value.trim()) paintBondDefault();
 }
 
 function paintQueue() {
@@ -435,4 +453,102 @@ $("#laneMeasure")?.addEventListener("click", async () => {
     if (e.name === "AbortError") return;
     note.textContent = e.message;
   }
+});
+
+/* ===========================================================================
+   THE BOND, READ FROM THE CHAIN
+   ---------------------------------------------------------------------------
+   This panel exists because "no hard-coded values" has to be visible, not
+   asserted. The number below is bondFor() on Sepolia, which reaches through
+   our contract into the live ENSv2 registry to decide whether a tier on the
+   reporter's name waives the bond. Paste a different address and it changes.
+
+   Same two interaction rules as the Project field: abort in flight so a slow
+   answer for a half-typed address cannot overwrite a fresh one, and show the
+   busy state immediately rather than after the debounce.
+   ======================================================================== */
+const TOKEN = "WASP";
+const isAddress = (s) => /^0x[0-9a-fA-F]{40}$/.test(s.trim());
+
+let bondController = null;
+let bondTimer = null;
+
+function paintBondDefault() {
+  const c = LIVE?.contracts;
+  const panel = $("#bondPanel");
+  if (!c?.connected) { panel.hidden = true; return; }
+  panel.hidden = false;
+  panel.classList.remove("bondq--busy");
+  panel.dataset.state = "default";
+  $("#bondAmount").textContent = c.baseBond;
+  $("#bondUnit").textContent = `${TOKEN} — the full bond`;
+  $("#bondReason").textContent =
+    "This is the base bond for a reporter with no history and no tier. Enter an address to see what you would actually pay.";
+  $("#bondLink").href = c.explorer;
+}
+
+function paintBond(q) {
+  const panel = $("#bondPanel");
+  panel.hidden = false;
+  panel.classList.remove("bondq--busy");
+  panel.dataset.state = q.waived ? "waived" : "due";
+
+  $("#bondAmount").textContent = q.waived ? "Free" : q.bond;
+  $("#bondUnit").textContent = q.waived ? "no bond to post" : `${TOKEN} — refundable`;
+
+  /* Say WHY, because "0" means two very different things: a first-timer being
+     let in, and a reputation that has already been earned. */
+  $("#bondReason").textContent =
+    q.tier > 0
+      ? `Tier ${q.tier} on this name waives the bond. That tier was earned on a previous report, and it is not ours to take away — it lives on the ENS name, not in our database.`
+      : q.waived
+        ? "First report from this address is free. The door is open by default; the bond only ever buys priority."
+        : `No tier on this name yet, so the full ${q.baseBond} ${TOKEN} applies. You get all of it back if the report is real — and all of it back if it is simply wrong.`;
+
+  $("#bondLink").href = LIVE?.contracts?.explorer ?? "#";
+}
+
+async function quoteBond(reporter) {
+  bondController?.abort();
+  bondController = new AbortController();
+  const r = await fetch(`/api/chain/bond?reporter=${encodeURIComponent(reporter)}`, {
+    signal: bondController.signal,
+  });
+  const j = await r.json();
+  if (!r.ok || j.error) throw new Error(j.error || `HTTP ${r.status}`);
+  return j;
+}
+
+$("#reporter").addEventListener("input", (e) => {
+  const v = e.target.value.trim();
+  const hint = $("#reporterHint");
+  clearTimeout(bondTimer);
+
+  if (!v) {
+    bondController?.abort();
+    hint.textContent = "We read your tier from ENS. We never ask you to sign anything here.";
+    paintBondDefault();
+    return;
+  }
+  if (!isAddress(v)) {
+    bondController?.abort();
+    hint.textContent = "That is not a 0x address yet — 42 characters including the 0x.";
+    return;
+  }
+
+  hint.textContent = "Reading bondFor() on Sepolia…";
+  $("#bondPanel").hidden = false;
+  $("#bondPanel").classList.add("bondq--busy");
+
+  bondTimer = setTimeout(async () => {
+    try {
+      const q = await quoteBond(v);
+      hint.textContent = q.source;
+      paintBond(q);
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      hint.textContent = err.message;
+      $("#bondPanel").classList.remove("bondq--busy");
+    }
+  }, 320);
 });

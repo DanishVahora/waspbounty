@@ -105,6 +105,31 @@
 
   <div class="card">
     <div class="card__h"><span class="card__t">Pick a lane</span></div>
+
+    <!-- The bond is never a number this page chose. It is bondFor() on Sepolia,
+         which reaches into the live ENSv2 registry to decide whether a tier on
+         the reporter's name waives it. Paste any address and watch it change. -->
+    <div class="field">
+      <label class="field__l" for="reporter">Your address <span class="field__opt">— optional, only to quote your bond</span></label>
+      <input class="input" id="reporter" spellcheck="false" autocomplete="off"
+             placeholder="0x… — leave empty to see the default bond">
+      <p class="field__h" id="reporterHint">We read your tier from ENS. We never ask you to sign anything here.</p>
+    </div>
+
+    <div class="bondq" id="bondPanel" hidden>
+      <div class="bondq__main">
+        <b class="bondq__n" id="bondAmount">—</b>
+        <span class="bondq__u" id="bondUnit">to post</span>
+      </div>
+      <div class="bondq__why">
+        <p class="bondq__r" id="bondReason">—</p>
+        <p class="bondq__src">
+          <code>bondFor()</code> on Sepolia ·
+          <a id="bondLink" href="#" target="_blank" rel="noopener noreferrer">read the contract</a>
+        </p>
+      </div>
+    </div>
+
     <div class="lanes">
       <button class="lane lane--free" data-lane="free" aria-pressed="false">
         <span class="lane__t">Free lane</span>
@@ -113,8 +138,8 @@
       </button>
       <button class="lane" data-lane="priority" aria-pressed="true">
         <span class="lane__t">Priority lane</span>
-        <span class="lane__d">Post 0.01 ETH. A human answers within 72 hours, or the maintainer's bond pays out to you.</span>
-        <span class="lane__p">refundable · 0.01 ETH</span>
+        <span class="lane__d">Post a refundable bond. A human answers within the window, or the maintainer's bond pays out to you.</span>
+        <span class="lane__p" id="lanePrice">refundable · reading chain…</span>
       </button>
     </div>
 
@@ -145,6 +170,7 @@
   <div class="card__h" style="margin-bottom:var(--s4)">
     <span class="pill" id="deskStatus">checking backends…</span>
     <span class="pill" id="modelPill" hidden></span>
+    <a class="pill" id="chainPill" hidden target="_blank" rel="noopener noreferrer"></a>
   </div>
 
   <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6);align-items:start" id="deskGrid">

@@ -227,19 +227,48 @@ catalogue does, in a field that is easy to miss:
 - `verifiability: "TeeML"` → TDX, dstack verifier. **The model runs in the enclave.**
 - `verifiability: "TeeTLS"` → transport encryption only. **The model does not.**
 
-Only **7 of 123** models carry a verifiability value at all (6 TeeML, 1 TeeTLS,
-verified live 2026-11-06), and of those only a few are chat models. We pin
-`0gm-1.0-35b-a3b` — TeeML, TDX, dstack, 262k context — and
-[`assertTeeML()`](src/triage/zerog.mjs) **refuses to run at all** if the
-catalogue stops reporting it as TeeML, rather than quietly falling back.
+Only **10 of 125** models carry a verifiability value at all (9 TeeML, 1 TeeTLS,
+verified live 2026-11-06), and most of those are embedding, speech or image
+models. We pin `glm-5.3` and [`assertTeeML()`](src/triage/zerog.mjs) **refuses to
+run at all** if the catalogue stops reporting it as TeeML, rather than quietly
+falling back.
 
-`X-0G-Provider-Trust-Mode: private` returns **503 rather than silently
-downgrading**, which is what makes the claim safe to state out loud.
+### What we verify, and what we do not
 
-> **Note:** we treat `tee_attested` / `verify_tee` as the router's **self-report**
-> and label it that way on screen. We store the request id (`ZG-Res-Key`),
-> provider and trust mode; we do not claim a verified provider signature unless
-> we actually checked one.
+The claim "an enclave read this" is worth nothing unless it can be checked, so
+here is exactly how far we can check it.
+
+`GET /v1/providers?model=` lists every provider serving a model with its trust
+mode and TEE status, and every completion returns `x_0g_trace.provider` — the
+address that served it. **`glm-5.3` is served by three providers, and they are
+not alike:**
+
+| provider | trust mode | enclave |
+|---|---|---|
+| 0G Foundation `0xD179…E503` | `private` | **TeeML · TDX · dstack** |
+| Baidu `0x0000…8044` | `standard` | none declared |
+| Tencent `0x0000…8044` | `standard` | none declared |
+
+`X-0G-Provider-Trust-Mode: private` is what keeps us on the first row, and it
+**fails rather than silently downgrading** — 503 when no enclave is free, 502
+when the enclave is down, never a quiet reroute to Baidu.
+[`verifyProvider()`](src/triage/zerog.mjs) then checks the address that actually
+answered against the enclave list, and the request id and that address are both
+shown on screen. That is a checked fact, not a self-report.
+
+> **What we cannot do, stated plainly:** fetch the provider's signature over the
+> response. `GET {provider_url}/v1/proxy/signature/{chatID}` is real, but it
+> belongs to the direct-SDK flow where you hold the provider's URL. Through the
+> Router it is unreachable — no provider record carries a `url` field, and eight
+> candidate router-side paths all return 404 against a live chat id. So we do
+> **not** claim a verified provider signature. We verify provider identity by
+> address and say so, in the UI and in the code.
+
+**One more thing the probing caught:** `glm-5.3` is a reasoning model. A real
+triage call spent **485 reasoning tokens before emitting any JSON**, so a
+`max_tokens` under ~1500 returns an *empty string* rather than a short answer.
+An empty completion now raises instead of quietly parsing to `"plausible"` —
+which is the kind of bug that would have scored a fabricated report as honest.
 
 ---
 
@@ -251,25 +280,30 @@ Mutual bail, three verdicts, `claimGhosted()` callable by anyone, a triage pool
 the deciding party cannot withdraw from, ENS tier waiver, reentrancy guard, and
 USDT-style tokens that return nothing from `transfer`.
 
-**14 tests passing** (`node:test` + viem against a local chain), covering refund,
+**19 tests passing** (`node:test` + viem against a local chain), covering refund,
 slash routing, ghost claims, the tier waiver at each level, steward-only pool
-withdrawal, and the `EACInvalidRoleBitmap` rejection.
+withdrawal, the `EACInvalidRoleBitmap` rejection, and the five repo-identity
+tests that stop one project becoming two lanes.
 
 ### Deployed — Sepolia (chain 11155111)
 
 | | address |
 |---|---|
-| **WaspBounty** | [`0x8cbbe051d977a019857da2e9cc5a7284bff6835d`](https://sepolia.etherscan.io/address/0x8cbbe051d977a019857da2e9cc5a7284bff6835d) |
-| **MockToken** (demo bond currency) | [`0xede5c8d84d10336cfd5e223adfeb3a35d446447a`](https://sepolia.etherscan.io/address/0xede5c8d84d10336cfd5e223adfeb3a35d446447a) |
+| **WaspBounty** | [`0xe7d75b9c9a5b65ce4c3ba654da7013139f451f7e`](https://sepolia.etherscan.io/address/0xe7d75b9c9a5b65ce4c3ba654da7013139f451f7e) |
+| **MockToken** (demo bond currency) | [`0x4171c21de334ca7cf6977d48153a6ec357ba9c3e`](https://sepolia.etherscan.io/address/0x4171c21de334ca7cf6977d48153a6ec357ba9c3e) |
 | **ENSv2 ETHRegistry** (not ours — live) | [`0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4`](https://sepolia.etherscan.io/address/0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4) |
 | Deployer / triage steward | `0x4CA8176777D44B76235684b63334088C618994e4` |
+
+Addresses live in [`deployments.sepolia.json`](deployments.sepolia.json) and the
+app reads them from there. Nothing is hard-coded in the front end, so a redeploy
+never means editing the UI.
 
 **The contract is pointed at the real ENSv2 registry, not a mock.** `bondFor()`
 reaches live chain state to decide whether a reporter's tier waives the bond.
 You can check that yourself without spending anything:
 
 ```bash
-cast call 0x8cbbe051d977a019857da2e9cc5a7284bff6835d \
+cast call 0xe7d75b9c9a5b65ce4c3ba654da7013139f451f7e \
   "bondFor(address,uint256)(uint256)" \
   0x0000000000000000000000000000000000000001 0 \
   --rpc-url https://ethereum-sepolia-rpc.publicnode.com
@@ -277,6 +311,15 @@ cast call 0x8cbbe051d977a019857da2e9cc5a7284bff6835d \
 
 Returns `0` — a reporter who has never submitted posts no bond. **Reporting is
 free by default**, which is the whole design, enforced on-chain.
+
+No `cast` to hand? The running app exposes the same reads, and `/api/health`
+answers by asking Sepolia rather than by quoting the file above:
+
+```bash
+curl 'http://localhost:4318/api/chain/bond?reporter=0x0000000000000000000000000000000000000001'
+curl 'http://localhost:4318/api/chain/lane?slug=curl/curl'
+curl  http://localhost:4318/api/health
+```
 
 `MockToken` is ours and exists because Sepolia has no canonical stablecoin. We
 say so rather than implying a real asset is at stake.
