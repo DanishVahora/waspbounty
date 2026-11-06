@@ -20,7 +20,7 @@
 
 import { eq, and, gt, lt, desc, asc } from "@arkiv-network/sdk/query";
 import { str, u64, addr } from "@arkiv-network/sdk/schema";
-import { Report, Clock, Verdict, Tier } from "./schema.mjs";
+import { Report, Clock, Verdict, Tier, RepoBinding } from "./schema.mjs";
 
 const PAGE = 100; // MAX_LIMIT
 
@@ -193,4 +193,110 @@ export function watchAllExtensions(reader, onAny, onError) {
     }),
     onError: onError || (() => {}),
   });
+}
+
+/* ---------------------------------------------------------------------------
+   THE GITHUB LANES — real projects, measured, with the arithmetic attached.
+
+   This is the read that makes the board about something. Every row is a public
+   GitHub project, the response bond its own issue tracker justifies, and a
+   proof URL a stranger can curl.
+
+   Ordered by bond multiple descending: the lanes where a report is most likely
+   to be ignored come first, which is the opposite of how every bug bounty
+   platform sorts and the only ordering a REPORTER actually wants.
+   --------------------------------------------------------------------------- */
+export async function repoLanes(reader, { limit = 50 } = {}) {
+  const { entities } = await reader
+    .select({
+      $key: true, $expiresAt: true, $creator: true,
+      slug: true, repoId: true, maintainer: true, verified: true,
+      windowDays: true, promiseSupported: true,
+      stars: true, openIssues: true, unanswered: true, oldestUnansweredDays: true,
+      breaches: true, bondBasisPoints: true, securityMd: true, measuredAt: true,
+      proofUrl: true,
+    })
+    .from(RepoBinding)
+    /* newest measurement first, so the dedupe below keeps the current one */
+    .orderBy(desc("measuredAt"))
+    .limit(PAGE)
+    .fetch();
+
+  /* A project gets re-measured — that is the whole point of a 30-day lifetime,
+     and nothing stops two measurements of one repo being live at once. The
+     board must show the CURRENT reading per project, not the history, or a
+     stale row sits next to a fresh one claiming equal authority. */
+  const newestPerSlug = new Map();
+  for (const row of entities.map(shapeBinding)) {
+    const seen = newestPerSlug.get(row.slug);
+    if (!seen || row.measuredAt > seen.measuredAt) newestPerSlug.set(row.slug, row);
+  }
+
+  /* Highest bond first: the lanes where a report is most likely to be ignored.
+     That is the opposite of how bounty platforms sort, and the only ordering a
+     REPORTER actually wants. */
+  return [...newestPerSlug.values()]
+    .sort((a, b) => b.bondMultiple - a.bondMultiple)
+    .slice(0, limit);
+}
+
+/* One project's current measurement. */
+export async function laneFor(reader, slug) {
+  const { entities } = await reader
+    .select({
+      $key: true, $expiresAt: true,
+      slug: true, repoId: true, maintainer: true, verified: true,
+      windowDays: true, promiseSupported: true,
+      stars: true, openIssues: true, unanswered: true, oldestUnansweredDays: true,
+      breaches: true, bondBasisPoints: true, securityMd: true, measuredAt: true,
+      proofUrl: true, evidence: true,
+    })
+    .from(RepoBinding)
+    .where(eq("slug", str(String(slug).toLowerCase())))
+    .orderBy(desc("measuredAt"))
+    .limit(1)
+    .fetch();
+
+  if (!entities.length) return null;
+  const row = shapeBinding(entities[0]);
+  /* the full arithmetic, so the number on screen can be argued with */
+  try {
+    const raw = entities[0].evidence?.value;
+    if (raw) row.evidence = JSON.parse(new TextDecoder().decode(hexToBytes(raw)));
+  } catch { /* a binding without readable evidence still shows its numbers */ }
+  return row;
+}
+
+const hexToBytes = (hex) => {
+  const h = String(hex).replace(/^0x/, "");
+  const out = new Uint8Array(h.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(h.slice(i * 2, i * 2 + 2), 16);
+  return out;
+};
+
+function shapeBinding(e) {
+  const n = (v) => Number(v ?? 0);
+  return {
+    key: e.$key,
+    slug: e.slug.value,
+    repoId: e.repoId.value,
+    maintainer: e.maintainer.value,
+    /* false until someone proves push access to the default branch. Shown on
+       screen as an open seat, never hidden. */
+    verified: Boolean(e.verified.value),
+    windowDays: n(e.windowDays.value),
+    promiseSupported: Boolean(e.promiseSupported.value),
+    stars: n(e.stars.value),
+    openIssues: n(e.openIssues.value),
+    unanswered: n(e.unanswered.value),
+    oldestUnansweredDays: n(e.oldestUnansweredDays.value),
+    breaches: n(e.breaches.value),
+    bondMultiple: n(e.bondBasisPoints.value) / 10_000,
+    securityMd: Boolean(e.securityMd.value),
+    measuredAt: n(e.measuredAt.value),
+    proofUrl: e.proofUrl?.value ?? null,
+    /* the measurement dies on its own; a stale lane is visibly unmeasured */
+    expiresAtBlock: e.$expiresAt?.toString() ?? null,
+    githubUrl: "https://github.com/" + e.slug.value,
+  };
 }

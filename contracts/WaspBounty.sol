@@ -87,6 +87,7 @@ contract WaspBounty {
         uint256 reserved;       // part of pool committed to open reports
         uint64  responseWindow; // seconds the maintainer has to answer
         bool    active;
+        string  slug;           // "curl/curl" — the chain names the project it protects
     }
 
     struct Report {
@@ -123,7 +124,13 @@ contract WaspBounty {
     uint256 private _nonce;
     uint256 private _lock = 1;
 
-    event RepoRegistered(bytes32 indexed repoId, address indexed maintainer, uint256 pool, uint64 responseWindow);
+    event RepoRegistered(
+        bytes32 indexed repoId,
+        address indexed maintainer,
+        string slug,
+        uint256 pool,
+        uint64 responseWindow
+    );
     event RepoToppedUp(bytes32 indexed repoId, uint256 amount, uint256 newPool);
     event ReportSubmitted(
         bytes32 indexed reportId,
@@ -153,6 +160,7 @@ contract WaspBounty {
     error BadVerdict();
     error Reentrancy();
     error ZeroAddress();
+    error BadSlug();
 
     modifier nonReentrant() {
         if (_lock != 1) revert Reentrancy();
@@ -229,9 +237,66 @@ contract WaspBounty {
     // Maintainer side — the half nobody else builds
     // ---------------------------------------------------------------------
 
+    // ---------------------------------------------------------------------
+    // Repo identity — derived, never chosen.
+    //
+    // An earlier version of this contract took `repoId` as a caller-supplied
+    // bytes32. That meant the id was an arbitrary number: nothing tied it to a
+    // real project, and nothing stopped a stranger from registering the lane
+    // for `curl/curl` and sitting in the maintainer's seat.
+    //
+    // Now the id IS the project name, hashed. Two people cannot disagree about
+    // it, a wrong slug produces a different lane rather than a silent
+    // impersonation, and anyone can recompute it off-chain:
+    //
+    //     keccak256(abi.encodePacked("github.com/", "curl/curl"))
+    //     == 0x756b88bbc9f99cb529a36e4733f94ba243ab2d94bea853ab8931a57400f64f95
+    //
+    // The slug MUST be lowercase, because GitHub treats owner/repo
+    // case-insensitively — `Curl/Curl` and `curl/curl` are one project and must
+    // never become two lanes. Checked on-chain rather than trusted.
+    // ---------------------------------------------------------------------
+
+    /// @notice The canonical lane id for a GitHub project. Pure, so anyone can
+    ///         verify off-chain tooling agrees with the chain.
+    function repoIdFor(string memory slug) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked("github.com/", slug));
+    }
+
+    /// @dev Rejects anything that is not `owner/repo` in lowercase. Deliberately
+    ///      strict: a slug that merely looks right is an impersonation risk.
+    function _requireCanonicalSlug(string memory slug) private pure {
+        bytes memory b = bytes(slug);
+        if (b.length < 3 || b.length > 100) revert BadSlug();
+
+        uint256 slashes;
+        uint256 slashAt;
+        for (uint256 i; i < b.length; ++i) {
+            bytes1 c = b[i];
+            if (c == "/") {
+                ++slashes;
+                slashAt = i;
+            } else if (
+                !((c >= "a" && c <= "z") || (c >= "0" && c <= "9") || c == "-" || c == "_" || c == ".")
+            ) {
+                revert BadSlug(); // uppercase and everything exotic lands here
+            }
+        }
+        // exactly one slash, and neither side of it empty
+        if (slashes != 1 || slashAt == 0 || slashAt == b.length - 1) revert BadSlug();
+    }
+
     /// @notice A project opens its priority lane by escrowing a response bond.
     ///         This is the maintainer's half of the bail.
-    function registerRepo(bytes32 repoId, uint256 pool, uint64 responseWindow) external nonReentrant {
+    /// @param slug the GitHub project, lowercase `owner/repo`. The lane id is
+    ///        derived from it, so it cannot name one project and bind another.
+    function registerRepo(string calldata slug, uint256 pool, uint64 responseWindow)
+        external
+        nonReentrant
+        returns (bytes32 repoId)
+    {
+        _requireCanonicalSlug(slug);
+        repoId = repoIdFor(slug);
         if (repos[repoId].active) revert RepoAlreadyExists();
         _pull(msg.sender, pool);
 
@@ -240,10 +305,11 @@ contract WaspBounty {
             pool: pool,
             reserved: 0,
             responseWindow: responseWindow,
-            active: true
+            active: true,
+            slug: slug
         });
 
-        emit RepoRegistered(repoId, msg.sender, pool, responseWindow);
+        emit RepoRegistered(repoId, msg.sender, slug, pool, responseWindow);
     }
 
     function topUp(bytes32 repoId, uint256 amount) external nonReentrant {

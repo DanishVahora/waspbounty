@@ -14,6 +14,7 @@
     "arkiv:write": "node --env-file=.env scripts/arkiv-write.mjs",
     "arkiv:read": "node --env-file=.env scripts/arkiv-read.mjs",
     "ens:probe": "node --env-file=.env scripts/ens-probe.mjs",
+    "github:bind": "node --env-file=.env scripts/github-bind.mjs",
     "zerog:models": "node --env-file=.env scripts/zerog-models.mjs",
     "serve": "node --env-file=.env app/server.mjs",
     "compile": "node scripts/compile.mjs",

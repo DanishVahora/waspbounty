@@ -15,6 +15,7 @@ function show(view) {
   $$(".view").forEach((v) => { v.hidden = v.id !== "view-" + view; });
   if (view === "desk") loadQueue();
   if (view === "board") loadBoard();
+  if (view === "lanes") loadLanes();
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 $$(".tab").forEach((t) => t.addEventListener("click", () => show(t.dataset.view)));
@@ -273,3 +274,165 @@ async function loadBoard() {
 /* ---------- boot ----------------------------------------------------------- */
 fetch("/api/health").then((r) => r.json()).then((h) => { LIVE = h; paintStatus(); }).catch(() => {});
 show("report");
+
+/* ===========================================================================
+   GITHUB — a project's own record, measured live.
+   ----------------------------------------------------------------------------
+   The Project field is the whole integration in miniature: type a repo and the
+   bond is derived from that project's real issue tracker, with the specific
+   issues that justify it linked underneath.
+
+   Two interaction rules, both deliberate:
+
+   · the in-flight request is ABORTED the moment the input changes, so a slow
+     answer for `cur` can never overwrite a fresh answer for `curl/curl`
+   · the panel shows its busy state on the FIRST keystroke, not after the
+     debounce, so typing never feels like nothing is happening
+   ======================================================================== */
+const band = (bondMultiple) => (bondMultiple <= 1.01 ? "clean" : bondMultiple < 1.6 ? "some" : "bad");
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+let ghController = null;
+let ghTimer = null;
+
+async function measureRepo(slug, windowDays = 7) {
+  ghController?.abort();
+  ghController = new AbortController();
+  const r = await fetch(
+    `/api/github/measure?slug=${encodeURIComponent(slug)}&window=${windowDays}`,
+    { signal: ghController.signal },
+  );
+  const j = await r.json();
+  if (!r.ok || j.error) throw new Error(j.error || `HTTP ${r.status}`);
+  return j;
+}
+
+function paintGh(data) {
+  const panel = $("#ghPanel");
+  const s = data.signals;
+  const risk = data.promise.risk;
+
+  panel.hidden = false;
+  panel.classList.remove("gh--busy");
+  panel.dataset.band = band(risk.bondMultiple);
+
+  const slugEl = $("#ghSlug");
+  slugEl.textContent = data.slug;
+  slugEl.href = data.githubUrl;
+
+  $("#ghStars").textContent =
+    `${s.stars.toLocaleString()} stars · pushed ${s.lastPushDays}d ago` +
+    (data.posture?.securityMd ? " · SECURITY.md" : " · no SECURITY.md");
+
+  $("#ghOpen").textContent = s.openIssuesSampled;
+  $("#ghSilent").textContent = s.unanswered;
+  $("#ghWorst").textContent = s.oldestUnansweredDays ? s.oldestUnansweredDays + "d" : "—";
+  $("#ghBond").textContent = risk.bondMultiple + "\u00D7";
+
+  /* State the finding in the maintainer's own numbers. No adjectives. */
+  $("#ghVerdict").innerHTML = data.promise.supported
+    ? `<b>Nothing is waiting past ${risk.proposedWindowDays} days.</b> This project's record supports the promise, so the response bond stays at the floor.`
+    : `<b>${plural(risk.breaches, "report has", "reports have")} already waited longer than the ${risk.proposedWindowDays} days being promised.</b> The bond is priced from that gap — not from an opinion about the maintainer.`;
+
+  $("#ghEvidence").innerHTML = (risk.breachExamples || [])
+    .map((b) => `<li><a href="${esc(b.url)}" target="_blank" rel="noopener noreferrer">waiting ${b.waitingDays} days → ${esc(b.url.replace("https://github.com/", ""))}</a></li>`)
+    .join("");
+
+  $("#ghLaneId").textContent = `lane id ${data.repoId}`;
+  $("#ghLaneDeriv").textContent = `= keccak256("github.com/${data.slug}") — recompute it yourself`;
+}
+
+function ghBusy(on) {
+  const panel = $("#ghPanel");
+  if (on) { panel.hidden = false; panel.classList.add("gh--busy"); }
+  else panel.classList.remove("gh--busy");
+}
+
+function ghFail(msg) {
+  const panel = $("#ghPanel");
+  panel.classList.remove("gh--busy");
+  panel.hidden = true;
+  $("#repoHint").textContent = msg;
+}
+
+async function runRepoMeasure() {
+  const slug = $("#repo").value.trim();
+  if (!slug) { ghFail("Any public GitHub project. We read its issue tracker, not its promises."); return; }
+  try {
+    const data = await measureRepo(slug, 7);
+    paintGh(data);
+    $("#repoHint").textContent = "Measured live from GitHub just now.";
+  } catch (e) {
+    if (e.name === "AbortError") return;   // superseded by a newer keystroke
+    ghFail(e.message);
+  }
+}
+
+const repoInput = $("#repo");
+if (repoInput) {
+  repoInput.addEventListener("input", () => {
+    ghBusy(true);                 // feedback on the keystroke, not after the wait
+    clearTimeout(ghTimer);
+    ghTimer = setTimeout(runRepoMeasure, 450);
+  });
+  repoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { clearTimeout(ghTimer); runRepoMeasure(); }
+  });
+  /* measure whatever is prefilled, so the panel is never empty on arrival */
+  runRepoMeasure();
+}
+
+/* ---------- the Projects board -------------------------------------------- */
+async function loadLanes() {
+  const list = $("#lanesList");
+  list.innerHTML = `<div style="padding:28px;text-align:center"><span class="spin"></span></div>`;
+  try {
+    const r = await fetch("/api/lanes");
+    const j = await r.json();
+
+    $("#lanesSource").textContent = j.source === "arkiv"
+      ? `${plural(j.lanes.length, "project", "projects")} read from Arkiv · Rabdi ${j.live?.arkiv?.chainId ?? ""}`
+      : `Arkiv unavailable (${j.source})`;
+
+    if (!j.lanes.length) {
+      list.innerHTML = `<div class="card"><p class="note">No projects measured yet. Add one above.</p></div>`;
+      return;
+    }
+
+    list.innerHTML = j.lanes.map((l) => `
+      <div class="lane-row" data-band="${band(l.bondMultiple)}">
+        <div>
+          <a class="lane-row__n" href="${esc(l.githubUrl)}" target="_blank" rel="noopener noreferrer">${esc(l.slug)}</a>
+          <span class="lane-row__sub">
+            ${l.stars.toLocaleString()} stars ·
+            ${l.verified ? "maintainer seat claimed" : "maintainer seat open"} ·
+            promising ${l.windowDays}d
+          </span>
+        </div>
+        <div class="lane-row__m">${l.openIssues}<i>open</i></div>
+        <div class="lane-row__m">${l.unanswered}<i>unanswered</i></div>
+        <div class="lane-row__m">${l.oldestUnansweredDays || "—"}${l.oldestUnansweredDays ? "d" : ""}<i>longest wait</i></div>
+        <div class="lane-row__bond">${l.bondMultiple}&#215;</div>
+      </div>`).join("");
+  } catch (e) {
+    list.innerHTML = `<div class="card"><p class="note">Could not read the lanes: ${esc(e.message)}</p></div>`;
+  }
+}
+
+$("#laneMeasure")?.addEventListener("click", async () => {
+  const slug = $("#laneSlug").value.trim();
+  const windowDays = Number($("#laneWindow").value);
+  const note = $("#laneNote");
+  if (!slug) { note.textContent = "Give me an owner/repo."; return; }
+  note.textContent = "reading GitHub…";
+  try {
+    const d = await measureRepo(slug, windowDays);
+    const r = d.promise.risk;
+    note.innerHTML = `<b>${esc(d.slug)}</b> — ${r.band}, bond <b>${r.bondMultiple}&#215;</b>. ` +
+      `Run <code>npm run github:bind -- ${esc(d.slug)} --window ${windowDays}</code> to publish it to Arkiv.`;
+    toast(`${d.slug}: ${r.bondMultiple}\u00D7 bond — ${r.band}`);
+  } catch (e) {
+    if (e.name === "AbortError") return;
+    note.textContent = e.message;
+  }
+});

@@ -17,7 +17,9 @@ import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 
 import { clients, accountFromEnv, accessKeyFromEnv, scrub } from "../src/arkiv/client.mjs";
-import { expiringSoon, ghostCandidates, countOpen, watchExtensions } from "../src/arkiv/board.mjs";
+import { expiringSoon, ghostCandidates, countOpen, watchExtensions, repoLanes, laneFor } from "../src/arkiv/board.mjs";
+import { repoIdFor, verifyRepoControl, repoExists, canonicalSlug, PROOF_PATH, GitHubError } from "../src/github/identity.mjs";
+import { repoSignals, securityPosture, assessPromise } from "../src/github/signals.mjs";
 import { triage, assertTeeML, TRIAGE_MODEL, TriageError } from "../src/triage/zerog.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -150,6 +152,86 @@ const server = http.createServer(async (req, res) => {
         live, open, ghosts, rows: rows.length ? rows : DEMO,
         extensions, usingDemo: rows.length === 0,
       });
+    }
+
+    /* ---------------------------------------------------------------------
+       THE GITHUB LANES — the user-visible read from Arkiv.
+
+       Every row is a real project whose response bond was priced from its own
+       issue tracker. Falls back to a LIVE MEASUREMENT (not fake data) if Arkiv
+       has nothing yet, and says which one you are looking at.
+       --------------------------------------------------------------------- */
+    if (url.pathname === "/api/lanes") {
+      const live = await liveStatus();
+      let lanes = [];
+      let source = "none";
+      if (live.arkiv.connected) {
+        try {
+          lanes = await repoLanes(reader, { limit: 50 });
+          source = "arkiv";
+        } catch (e) { source = "arkiv-failed:" + scrub(e); }
+      }
+      return send(res, 200, { lanes, source, live });
+    }
+
+    /* One lane, with the full arithmetic behind its bond multiple. */
+    if (url.pathname === "/api/lane") {
+      const slug = url.searchParams.get("slug");
+      if (!slug) return send(res, 400, { error: "slug required" });
+      if (!reader) return send(res, 503, { error: "Arkiv not connected" });
+      try {
+        const lane = await laneFor(reader, canonicalSlug(slug));
+        if (!lane) return send(res, 404, { error: "no measurement published for " + slug });
+        return send(res, 200, lane);
+      } catch (e) {
+        return send(res, 400, { error: e instanceof GitHubError ? e.message : scrub(e) });
+      }
+    }
+
+    /* Measure a project live, against a window the caller proposes. No write,
+       no key, no wallet — this is the number before anyone commits to it. */
+    if (url.pathname === "/api/github/measure") {
+      const slug = url.searchParams.get("slug");
+      const windowDays = Number(url.searchParams.get("window") || 7);
+      if (!slug) return send(res, 400, { error: "slug required" });
+      try {
+        const canonical = canonicalSlug(slug);
+        const exists = await repoExists(canonical);
+        if (!exists.exists) return send(res, 404, { error: "no such project on GitHub: " + canonical });
+
+        const [signals, posture] = await Promise.all([
+          repoSignals(canonical),
+          securityPosture(canonical).catch(() => ({ securityMd: false })),
+        ]);
+        const promise = assessPromise(windowDays, signals);
+
+        return send(res, 200, {
+          slug: canonical,
+          repoId: repoIdFor(canonical),
+          githubUrl: "https://github.com/" + canonical,
+          exists,
+          signals: { ...signals, silent: undefined },  // the full list is large; worstThree is enough for the UI
+          posture,
+          promise,
+          /* a judge can reproduce every number */
+          howToCheck: signals.howToCheck,
+        });
+      } catch (e) {
+        return send(res, 400, { error: e instanceof GitHubError ? e.message : scrub(e) });
+      }
+    }
+
+    /* Does whoever holds this address control the repo's default branch? */
+    if (url.pathname === "/api/github/verify") {
+      const slug = url.searchParams.get("slug");
+      const address = url.searchParams.get("address") || account?.address;
+      if (!slug || !address) return send(res, 400, { error: "slug and address required" });
+      try {
+        const out = await verifyRepoControl(slug, address);
+        return send(res, 200, { ...out, proofPath: PROOF_PATH });
+      } catch (e) {
+        return send(res, 400, { error: e instanceof GitHubError ? e.message : scrub(e) });
+      }
     }
 
     if (url.pathname === "/api/triage" && req.method === "POST") {

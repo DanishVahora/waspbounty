@@ -39,6 +39,68 @@ one-sided tax on researchers.
 
 ---
 
+## The GitHub half
+
+The obvious objection to everything above is **"how big should the response bond
+be?"** — and until the bond is grounded in something, the answer is a number we
+invented. A number we invented is the weakest part of any mechanism design.
+
+So we stopped inventing it. GitHub already publishes the only evidence that
+matters: **how a project has actually treated the reports it already has.**
+
+```
+GET /repos/{owner}/{repo}/issues?state=open&sort=created&direction=asc
+```
+
+Every open issue with `comments == 0` is a report nobody has answered, and its
+age is how long the silence has lasted. Count the ones that have already waited
+longer than the window the maintainer now wants to promise, and you have the
+bond — priced from the maintainer's own public record, with issue numbers a
+judge can click.
+
+**Measured live on 2026-11-06, all reproducible with one `gh api` call:**
+
+| project | open | never answered | longest wait | bond at a 7-day promise |
+|---|--:|--:|--:|--:|
+| `axios/axios` | 47 | 13 | 916d | **2.84×** |
+| `curl/curl` | 26 | 10 | 99d | **1.51×** |
+| `nodejs/node` | 95 | 1 | 1666d | **1.07×** |
+| `expressjs/express` | 74 | 0 | — | **1×** |
+
+Note what this does *not* do: it is not an accusation machine. `expressjs/express`
+answers everything and pays the floor. `nodejs/node` answers 94 of 95 and pays
+almost nothing. The bond prices **the gap between the promise and the record**,
+so a long honest window is always cheaper than a short dishonest one.
+
+### Who owns the lane
+
+The contract used to take `repoId` as a caller-supplied `bytes32`, which meant
+anyone could register the bounty lane for `curl/curl` and sit in the maintainer's
+seat. Now the id **is** the project name:
+
+```solidity
+repoIdFor("curl/curl") == keccak256(abi.encodePacked("github.com/", "curl/curl"))
+                       == 0x756b88bbc9f99cb529a36e4733f94ba243ab2d94bea853ab8931a57400f64f95
+```
+
+Lowercase is enforced on-chain, because GitHub is case-insensitive and
+`Curl/Curl` must never become a second lane for one project. A test asserts the
+contract and the JavaScript derive the same id.
+
+Control of the lane is proved by a file on the default branch:
+
+```bash
+curl https://raw.githubusercontent.com/OWNER/REPO/HEAD/.well-known/waspbounty.txt
+```
+
+No OAuth, no app install, no API token, no rate limit — **a judge can verify it
+with one curl and no account.** Be precise about what it proves: someone with
+push access to the default branch published that address. That is exactly the
+right authority, because the person who can merge the fix is the person who
+should hold the response bond.
+
+---
+
 ## Run it
 
 Requires **Node ≥ 22.10**.
@@ -48,7 +110,7 @@ npm install
 cp .env.example .env     # then fill in the values
 npm run compile          # solc-js -> build/
 npm run chain            # local EVM, separate terminal
-npm test                 # 14 tests
+npm test                 # 19 tests
 npm run serve            # app on http://localhost:4318
 ```
 
@@ -59,6 +121,8 @@ npm run serve            # app on http://localhost:4318
 | `npm run arkiv:write` | writes a report entity with a 90-day expiry |
 | `npm run ens:probe` | read-only ENSv2 check on Sepolia (spends nothing) |
 | `npm run zerog:models` | live 0G router model catalogue |
+| `npm run github:bind -- curl/curl --window 7 --dry` | measure a real repo, write nothing |
+| `npm run github:bind -- curl/curl --window 7` | measure it and publish the evidence to Arkiv |
 
 ---
 
@@ -195,8 +259,8 @@ withdrawal, and the `EACInvalidRoleBitmap` rejection.
 
 | | address |
 |---|---|
-| **WaspBounty** | [`0xb9e8e49725d25a23e136d2e5d45858d1eb6abcac`](https://sepolia.etherscan.io/address/0xb9e8e49725d25a23e136d2e5d45858d1eb6abcac) |
-| **MockToken** (demo bond currency) | [`0xcc6763c579f0d612ff02934d6c159bde3ed90acb`](https://sepolia.etherscan.io/address/0xcc6763c579f0d612ff02934d6c159bde3ed90acb) |
+| **WaspBounty** | [`0x8cbbe051d977a019857da2e9cc5a7284bff6835d`](https://sepolia.etherscan.io/address/0x8cbbe051d977a019857da2e9cc5a7284bff6835d) |
+| **MockToken** (demo bond currency) | [`0xede5c8d84d10336cfd5e223adfeb3a35d446447a`](https://sepolia.etherscan.io/address/0xede5c8d84d10336cfd5e223adfeb3a35d446447a) |
 | **ENSv2 ETHRegistry** (not ours — live) | [`0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4`](https://sepolia.etherscan.io/address/0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4) |
 | Deployer / triage steward | `0x4CA8176777D44B76235684b63334088C618994e4` |
 
@@ -205,7 +269,7 @@ reaches live chain state to decide whether a reporter's tier waives the bond.
 You can check that yourself without spending anything:
 
 ```bash
-cast call 0xb9e8e49725d25a23e136d2e5d45858d1eb6abcac \
+cast call 0x8cbbe051d977a019857da2e9cc5a7284bff6835d \
   "bondFor(address,uint256)(uint256)" \
   0x0000000000000000000000000000000000000001 0 \
   --rpc-url https://ethereum-sepolia-rpc.publicnode.com

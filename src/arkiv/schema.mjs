@@ -78,7 +78,53 @@ export const Tier = defineSchema("wasp.tier", {
   txHash: str(),                  // the settlement that granted it
 });
 
-export const SCHEMAS = { Report, Clock, Verdict, Tier };
+/* ---------------------------------------------------------------------------
+   THE GITHUB BINDING — what makes `repo: "curl/curl"` above mean anything.
+
+   Until this entity existed, every other schema here carried a repo as a
+   decorative string. Nothing said the project was real, and nothing said the
+   address holding the response bond had any authority over it.
+
+   This entity is the measurement AND the proof, published where a stranger can
+   read it without asking us:
+     - `proofUrl` is a raw.githubusercontent.com link a judge can curl
+     - `repoId` is the on-chain lane id, recomputable from `slug` alone
+     - the signal columns are the arithmetic behind the bond multiple
+
+   WHY IT EXPIRES, AND WHY THAT IS THE POINT
+
+   A claim about how fast a project answers reports is true on the day it is
+   measured and decays from then on. A permanent record of "curl had 10
+   unanswered issues" would become a lie without anyone editing it.
+
+   So this entity is written with a 30-day lifetime. Stale evidence disappears
+   on its own rather than quietly misinforming the next reporter, and a lane
+   whose measurement has expired is visibly unmeasured instead of falsely
+   reassuring. Letting it die is the default; renewing it requires measuring
+   again.
+   --------------------------------------------------------------------------- */
+export const RepoBinding = defineSchema("wasp.repo", {
+  slug: str().indexed(),               // "curl/curl", lowercase and canonical
+  repoId: str().indexed(),             // the on-chain lane id, 66 chars of hex
+  maintainer: addr().indexed(),
+  verified: bool().indexed(),          // the proof file named this address
+  windowDays: u64().indexed(),         // the promise being made
+  promiseSupported: bool().indexed(),  // does their own record back it up
+
+  stars: u64().indexed(),
+  openIssues: u64().indexed(),         // non-PR, sampled
+  unanswered: u64().indexed(),         // zero replies
+  oldestUnansweredDays: u64().indexed(),
+  breaches: u64().indexed(),           // already waited longer than windowDays
+  bondBasisPoints: u64().indexed(),    // 1.51x stored as 15100 — never a float
+  securityMd: bool().indexed(),
+  measuredAt: u64().indexed(),         // ms
+
+  proofUrl: str(),                     // curl this to check the binding yourself
+  evidence: bytes(),                   // the full signals JSON, so the maths is auditable
+});
+
+export const SCHEMAS = { Report, Clock, Verdict, Tier, RepoBinding };
 
 /* str() is 128 BYTES, not 128 characters. Truncate on the byte boundary so a
    multi-byte character can never be cut in half. */

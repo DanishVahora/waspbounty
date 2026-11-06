@@ -1,6 +1,6 @@
 # Schema
 
-Four entities on Rabdi (chain **7794095**), declared with `defineSchema` from
+Five entities on Rabdi (chain **7794095**), declared with `defineSchema` from
 `@arkiv-network/sdk@1.0.1`. Source: [`src/arkiv/schema.mjs`](../src/arkiv/schema.mjs).
 
 The shape of these is driven by three hard constraints, not by preference:
@@ -153,3 +153,48 @@ what we say, and it is enough.
   `.limit().offset()` plus `orderBy`.
 - Max lifetime is **7,884,000 blocks ≈ 182.5 days**, so a 90-day clock fits with
   room to spare, and a tier cannot outlive ~6 months without a deliberate renewal.
+
+---
+
+## `wasp.repo` — the GitHub binding
+
+What makes `repo: "curl/curl"` in every schema above mean anything. Until this
+existed, the repo was a decorative string: nothing said the project was real,
+and nothing said the address holding the response bond had any authority over it.
+
+| column | type | indexed | why |
+|---|---|:--:|---|
+| `slug` | `str` | ✓ | `curl/curl`, lowercase and canonical |
+| `repoId` | `str` | ✓ | the on-chain lane id, 66 chars — recomputable from `slug` |
+| `maintainer` | `addr` | ✓ | |
+| `verified` | `bool` | ✓ | the proof file on the default branch named this address |
+| `windowDays` | `u64` | ✓ | the promise being made |
+| `promiseSupported` | `bool` | ✓ | does their own record back it up |
+| `stars` | `u64` | ✓ | |
+| `openIssues` | `u64` | ✓ | non-PR, sampled |
+| `unanswered` | `u64` | ✓ | **zero replies — the ghost signal** |
+| `oldestUnansweredDays` | `u64` | ✓ | how long the worst one has waited |
+| `breaches` | `u64` | ✓ | already waited longer than `windowDays` |
+| `bondBasisPoints` | `u64` | ✓ | 1.51× stored as **15100** — never a float |
+| `securityMd` | `bool` | ✓ | |
+| `measuredAt` | `u64` | ✓ | ms |
+| `proofUrl` | `str` | | a `raw.githubusercontent.com` link anyone can curl |
+| `evidence` | `bytes` | | the full arithmetic, so the number can be argued with |
+
+**Why it expires, and why that is the point.** A claim about how fast a project
+answers reports is true on the day it is measured and decays from then on. A
+permanent record of *"curl had 10 unanswered issues"* becomes a lie without
+anyone editing it.
+
+So this is written with a **30-day lifetime**. Stale evidence disappears on its
+own rather than quietly misinforming the next reporter, and a lane whose
+measurement has expired is **visibly unmeasured** instead of falsely reassuring.
+Letting it die is the default; renewing it means measuring again.
+
+This is a different use of expiry from `wasp.report`, and deliberately so: there,
+expiry is a **deadline**; here, expiry is a **shelf life**.
+
+**The board reads the newest measurement per project.** Re-measuring is normal,
+so two readings of one repo can be live at once; `repoLanes()` dedupes by slug
+keeping the newest `measuredAt`, or a stale row would sit beside a fresh one
+claiming equal authority.

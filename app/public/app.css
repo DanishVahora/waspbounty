@@ -221,3 +221,104 @@ body[data-view="board"] .top__in{max-width:1120px}
   transition:transform var(--d3) var(--thunk);max-width:90vw;text-align:center;
 }
 .toast--up{transform:translateX(-50%) translateY(0)}
+
+/* ===========================================================================
+   THE GITHUB PANEL — a project's own record, quoted back to it.
+   Built entirely from existing tokens: no new colours, no new radii. The only
+   thing allowed to shout is the bond multiple, because it is the one number
+   the reporter is being asked to accept.
+   ======================================================================== */
+.gh{
+  margin-top:var(--s4);
+  border:var(--bd);
+  border-left:3px solid var(--rule-2);
+  border-radius:var(--r);
+  background:var(--paper-2);
+  padding:var(--s4) var(--s5);
+}
+/* Risk colours the left edge only. A whole panel in oxide reads as an
+   accusation; a 3px edge reads as a measurement. */
+.gh[data-band="clean"]{border-left-color:var(--seal)}
+.gh[data-band="some"]{border-left-color:var(--amber)}
+.gh[data-band="bad"]{border-left-color:var(--oxide)}
+
+.gh__row{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3)}
+.gh__slug{
+  font:600 var(--t-h3)/1.2 var(--mono);
+  letter-spacing:-.01em;
+  color:var(--ink);text-decoration:none;
+  border-bottom:1px solid var(--rule-2);
+}
+.gh__slug:hover{border-bottom-color:var(--ink)}
+.gh__stars{font:500 var(--t-xs)/1 var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+
+.gh__grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:var(--s2);margin:var(--s4) 0 var(--s3);
+}
+.gh__m{display:flex;flex-direction:column;gap:2px}
+.gh__m b{
+  font:600 1.5rem/1 var(--mono);
+  /* tabular + slashed zero: these numbers sit in a row and must not jiggle
+     when they change, and 0 must never be read as O */
+  font-variant-numeric:tabular-nums slashed-zero;
+  letter-spacing:-.02em;color:var(--ink);
+}
+.gh__m span{font:500 var(--t-xs)/1.3 var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+.gh__m--bond b{color:var(--oxide-ink)}
+.gh[data-band="clean"] .gh__m--bond b{color:var(--seal-ink)}
+.gh[data-band="some"] .gh__m--bond b{color:var(--amber-ink)}
+
+.gh__verdict{margin:0;font:400 var(--t-sm)/1.5 var(--sans);color:var(--ink-2)}
+.gh__verdict b{font-weight:600;color:var(--ink)}
+
+.gh__ev{list-style:none;margin:var(--s3) 0 0;padding:0;display:grid;gap:var(--s1)}
+.gh__ev a{
+  font:400 var(--t-xs)/1.4 var(--mono);color:var(--ink-3);
+  text-decoration:none;border-bottom:1px dotted var(--rule-2);
+}
+.gh__ev a:hover{color:var(--oxide-ink);border-bottom-style:solid}
+.gh__id{
+  margin:var(--s3) 0 0;padding-top:var(--s3);border-top:1px dashed var(--rule);
+  font:400 var(--t-xs)/1.5 var(--mono);color:var(--ink-4);
+}
+/* The 66-char hash is the ONLY thing allowed to break mid-token. Letting the
+   whole line break-all split `github.com/curl/curl` across lines as
+   "…/cur" + "l\")", which reads as a typo rather than a hash. */
+.gh__id > span{display:block;overflow-wrap:anywhere}
+.gh__id > em{display:block;font-style:normal;margin-top:2px;overflow-wrap:normal;word-break:keep-all}
+
+.gh--busy{opacity:.55}
+
+/* ---- the Projects board ------------------------------------------------- */
+.lane-row{
+  display:grid;grid-template-columns:minmax(0,2.2fr) repeat(3,minmax(0,1fr)) auto;
+  align-items:center;gap:var(--s4);
+  padding:var(--s4) var(--s5);
+  border:var(--bd);border-radius:var(--r);background:var(--card);
+  margin-bottom:var(--s3);
+}
+.lane-row:nth-child(even){background:var(--paper-2)}
+.lane-row__n{font:600 var(--t-body)/1.3 var(--mono);color:var(--ink);text-decoration:none}
+.lane-row__n:hover{text-decoration:underline}
+.lane-row__sub{display:block;font:400 var(--t-xs)/1.4 var(--sans);color:var(--ink-3);margin-top:2px}
+.lane-row__m{font:500 var(--t-sm)/1.2 var(--mono);font-variant-numeric:tabular-nums slashed-zero;color:var(--ink-2)}
+.lane-row__m i{display:block;font:500 var(--t-xs)/1.3 var(--sans);font-style:normal;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);margin-top:2px}
+.lane-row__bond{
+  font:600 1.125rem/1 var(--mono);font-variant-numeric:tabular-nums;
+  padding:var(--s2) var(--s3);border-radius:var(--r-sm);
+  background:var(--oxide-wash);color:var(--oxide-ink);white-space:nowrap;
+}
+.lane-row[data-band="clean"] .lane-row__bond{background:var(--seal-wash);color:var(--seal-ink)}
+.lane-row[data-band="some"] .lane-row__bond{background:var(--amber-wash);color:var(--amber-ink)}
+
+@media (max-width:860px){
+  .gh__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lane-row{grid-template-columns:minmax(0,1fr) auto;gap:var(--s3)}
+  .lane-row__m{display:none}
+}
+
+/* A gentler equivalent, not an absence of feedback. */
+@media (prefers-reduced-motion:reduce){
+  .gh{transition:none}
+}

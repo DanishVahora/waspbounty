@@ -39,7 +39,10 @@ let wallets = {};
 const BASE_BOND = parseEther("0.01");
 const POOL = parseEther("1");
 const WINDOW = 72n * 60n * 60n;
-const REPO_ID = keccak256(toHex("curl/curl"));
+/* The lane id is DERIVED from the project name, never chosen. This mirrors
+   WaspBounty.repoIdFor() exactly; the test below asserts they agree. */
+const SLUG = "curl/curl";
+const REPO_ID = keccak256(toHex(`github.com/${SLUG}`));
 const ARKIV_KEY = keccak256(toHex("wb-entity-1"));
 const LABEL = BigInt(keccak256(toHex("newcomer")));
 
@@ -84,7 +87,7 @@ async function world({ tokenName = "MockToken" } = {}) {
     await write(token, "mint", [wallets[who].account.address, parseEther("100")], who);
     await write(token, "approve", [z.address, parseEther("100")], who);
   }
-  await write(z, "registerRepo", [REPO_ID, POOL, WINDOW], "maintainer");
+  await write(z, "registerRepo", [SLUG, POOL, WINDOW], "maintainer");
   return { token, ens, z };
 }
 
@@ -259,5 +262,43 @@ describe("token compatibility", () => {
     const before = await bal(token, reporter);
     await write(z, "resolve", [id, 1], "maintainer");
     assert.equal(await bal(token, reporter) - before, BASE_BOND);
+  });
+});
+
+describe("repo identity — the lane id is the project, not a number", () => {
+  test("the contract and our GitHub tooling derive the SAME id", async () => {
+    const { z } = await world();
+    const { repoIdFor } = await import("../src/github/identity.mjs");
+
+    /* If these ever disagree, every off-chain lookup silently points at a lane
+       that does not exist. Assert it rather than assuming it. */
+    assert.equal(await read(z, "repoIdFor", [SLUG]), repoIdFor(SLUG));
+    assert.equal(await read(z, "repoIdFor", ["nodejs/node"]), repoIdFor("nodejs/node"));
+  });
+
+  test("the chain stores WHICH project it is protecting", async () => {
+    const { z } = await world();
+    const repo = await read(z, "repos", [REPO_ID]);
+    /* slug is the last member of the Repo struct */
+    assert.equal(repo[repo.length - 1], SLUG);
+  });
+
+  test("Curl/Curl cannot become a second lane for the same project", async () => {
+    const { z } = await world();
+    /* GitHub is case-insensitive, so an uppercase slug would hash to a
+       different id and split one project across two lanes. Rejected on-chain. */
+    await expectRevert(write(z, "registerRepo", ["Curl/Curl", POOL, WINDOW], "stranger"), "BadSlug");
+  });
+
+  test("a slug that is not owner/repo is rejected", async () => {
+    const { z } = await world();
+    for (const bad of ["curl", "curl/", "/curl", "a/b/c", "curl curl", "curl/curl!"]) {
+      await expectRevert(write(z, "registerRepo", [bad, POOL, WINDOW], "stranger"), "BadSlug");
+    }
+  });
+
+  test("one project, one lane — nobody can re-register it underneath you", async () => {
+    const { z } = await world();
+    await expectRevert(write(z, "registerRepo", [SLUG, POOL, WINDOW], "stranger"), "RepoAlreadyExists");
   });
 });
