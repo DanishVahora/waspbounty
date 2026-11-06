@@ -57,6 +57,19 @@ export const pub = createPublicClient({ chain: sepolia, transport: http(rpc) });
 const read = (functionName, args = []) =>
   pub.readContract({ address, abi, functionName, args });
 
+/* The bond currency names itself. The UI used to hard-code "WASP" while the
+   deployed token's symbol() returns "MOCK" — so every bond figure in the
+   product carried a ticker that does not exist on chain. Asking the token is
+   the only way that stays true through a redeploy. */
+const SYMBOL_ABI = [{ type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] }];
+async function tokenSymbol(addr) {
+  try {
+    return await pub.readContract({ address: addr, abi: SYMBOL_ABI, functionName: "symbol" });
+  } catch {
+    return "tokens";   /* never invent a ticker */
+  }
+}
+
 const explorer = (a) => `https://sepolia.etherscan.io/address/${a}`;
 
 /* ---------- status -------------------------------------------------------- */
@@ -79,6 +92,7 @@ export async function chainStatus() {
       read("token"), read("ensRegistry"), read("baseBond"),
       read("triageSteward"), read("triagePool"),
     ]);
+    const symbol = await tokenSymbol(token);
     return {
       connected: true,
       chainId,
@@ -88,6 +102,7 @@ export async function chainStatus() {
       codeBytes: (code.length - 2) / 2,
       token,
       tokenAddress,
+      tokenSymbol: symbol,
       ensRegistry,
       /* the ENS claim, stated as a checkable fact rather than a promise */
       ensIsLiveRegistry:

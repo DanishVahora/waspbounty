@@ -184,7 +184,11 @@ body[data-view="board"] .top__in{max-width:1120px}
 /* ---------- verdict panel -------------------------------------------------- */
 .verdict{border:1.5px solid var(--ink);border-radius:var(--r-lg);overflow:hidden;background:var(--card)}
 .verdict__h{display:flex;align-items:center;gap:10px;padding:11px var(--s5);background:var(--cream-2);color:var(--ink);border:1.6px solid var(--line);flex-wrap:wrap}
-.verdict__h .label{color:#C6BFB1}
+/* `.label` is defined in none of the three stylesheets; this rule was a bare
+   colour override at roughly 1.6:1 on cream. The line it styles says whether
+   a verdict came from a sealed enclave or a simulation — the single most
+   load-bearing provenance statement in the product, and it was unreadable. */
+.verdict__h .label{font:600 var(--t-xs)/1.3 var(--sans);text-transform:uppercase;letter-spacing:.13em;color:var(--ink-2)}
 .verdict__b{padding:var(--s5)}
 .kv{display:flex;gap:var(--s4);padding:8px 0;border-bottom:1px dotted var(--line);font-size:var(--t-sm)}
 .kv:last-child{border-bottom:0}
@@ -264,7 +268,11 @@ body[data-view="board"] .top__in{max-width:1120px}
 .note{font-size:var(--t-sm);color:var(--ink-3);line-height:1.6}
 .pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:var(--t-xs);letter-spacing:.01em;padding:4px 10px;border-radius:var(--r-pill);border:1.6px solid var(--line);color:var(--ink-3);background:var(--card)}
 .pill--live{border-color:var(--forest);color:var(--forest);background:var(--mint)}
-.pill--sim{border-color:var(--forest);color:var(--forest);background:var(--mint)}
+/* Was byte-identical to .pill--live, so every failure state in the product —
+   "Arkiv not connected", "contract not reachable", "no key" — rendered in
+   confident mint green. The code went to real trouble to tell these states
+   apart and the stylesheet threw it away. */
+.pill--sim{border-color:var(--clay);color:var(--clay);background:var(--clay-wash)}
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(90px);
   background:var(--cream-2);color:var(--ink);border:1.6px solid var(--line);padding:12px 20px;border-radius:var(--r-pill);
@@ -551,3 +559,35 @@ body[data-view] .welcome.is-done{display:none}
 .tray__a:hover{color:var(--ink);border-bottom-color:var(--ink)}
 .tray__x{font-size:18px;line-height:1;color:var(--ink-3);flex:none;padding:0 2px}
 .tray__x:hover{color:var(--ink)}
+
+
+/* The desk was a hard two-column grid with no breakpoint, so on a phone both
+   columns were unreadable rather than one being legible. */
+#deskGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6);align-items:start}
+@media (max-width:860px){ #deskGrid{grid-template-columns:minmax(0,1fr)} }
+
+/* Micro-labels were tracked at .1em. Wide-tracked mono at 11px is one of the
+   generated-UI tells this system exists to avoid, and .eyebrow already owns
+   tracking for the one place it belongs. */
+.stat__k{letter-spacing:.02em}
+
+/* The two desk columns were unlabelled: a list on the left, whichever row is
+   selected on the right, and nothing saying so. Two words each fixes it. */
+.deskcol{margin-bottom:var(--s3);display:block}
+
+/* A header row for the Projects list. Without it the bond column — the one
+   number the whole screen exists to produce — had no name anywhere on the
+   page, and the three per-row labels repeated N times instead of once. */
+.lane-head{
+  display:grid;grid-template-columns:minmax(0,2.2fr) repeat(3,minmax(0,1fr)) auto;
+  align-items:center;gap:var(--s4);
+  padding:0 var(--s5) var(--s2);
+}
+@media (max-width:860px){ .lane-head{display:none} }
+
+/* `hidden` is an attribute, and a class that sets `display` beats it. Several
+   elements here are pills and tags that scripts hide with .hidden = true, and
+   they kept rendering as empty bordered chips because `.pill{display:inline-flex}`
+   won. This is the one place !important earns its place: hidden must mean
+   hidden, whatever a component class says. */
+[hidden]{display:none !important}

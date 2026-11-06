@@ -95,7 +95,7 @@ function waiting(sel, what) {
 
 /* ---------- desk ----------------------------------------------------------- */
 async function loadQueue() {
-  waiting("#queue", "Reading the queue from Arkiv…");
+  waiting("#queue", "Reading the queue…");
   const q = $("#queue");
   q.innerHTML = `<div style="padding:28px;text-align:center"><span class="spin"></span></div>`;
   try {
@@ -108,7 +108,7 @@ async function loadQueue() {
     if (QUEUE[0]) select(QUEUE[0].caseId);
   } catch {
     q.innerHTML = `<div class="empty"><div class="empty__t">Can't reach the server</div>
-      <div class="empty__d">Is it still running? <code>npm run serve</code></div></div>`;
+      <div class="empty__d">The app server is not responding.</div></div>`;
   }
 }
 
@@ -159,7 +159,7 @@ function paintStatus() {
 
   /* The lane price is the contract's baseBond, not a number in the markup. */
   const lp = $("#lanePrice");
-  if (lp && c?.connected) lp.textContent = `refundable · up to ${c.baseBond} ${TOKEN}`;
+  if (lp && c?.connected) lp.textContent = `refundable · up to ${c.baseBond} ${tokenSymbol()}`;
   else if (lp) lp.textContent = "refundable · chain unreachable";
 
   if (!$("#reporter").value.trim()) paintBondDefault();
@@ -169,7 +169,7 @@ function paintQueue() {
   const q = $("#queue");
   if (!QUEUE.length) {
     q.innerHTML = `<div class="empty"><div class="empty__t">Inbox zero</div>
-      <div class="empty__d">Nothing is waiting on a human right now. That is the whole point.</div></div>`;
+      <div class="empty__d">Nothing is waiting on a human.</div></div>`;
     return;
   }
   q.innerHTML = "";
@@ -262,7 +262,7 @@ function paintVerdict(v) {
         <div class="verdict__b">
           <div class="kv"><span class="kv__k">model</span><span class="kv__v">${esc(v.model || "—")}</span></div>
           <div class="kv"><span class="kv__k">trust mode</span>
-            <span class="kv__v ${v.simulated ? "" : "kv__v--ok"}">${esc(v.trustMode || "—")}${v.simulated ? "" : " — the prompt never left the enclave"}</span></div>
+            <span class="kv__v ${v.simulated ? "" : "kv__v--ok"}">${esc(v.trustMode || "—")}</span></div>
           <div class="kv"><span class="kv__k">request id</span>
             <span class="kv__v">${v.requestId ? `<span class="mono-chip">${esc(v.requestId)}</span>` : '<span class="kv__v--no">none — nothing was sent</span>'}</span></div>
           <div class="kv"><span class="kv__k">confidence</span><span class="kv__v">${v.confidence ? (v.confidence * 100).toFixed(0) + "%" : "—"}</span></div>
@@ -272,9 +272,8 @@ function paintVerdict(v) {
       </div>
 
       <div class="humanline">
-        <span aria-hidden="true">✋</span>
-        <span><b>This is a first opinion, not a sentence.</b> Nothing is slashed
-        on a machine verdict. You decide, and your decision is what settles the bond.</span>
+        
+        <span><b>A first opinion, not a sentence.</b> Your decision settles the bond, not the model's.</span>
       </div>
 
       <div class="actions">
@@ -287,18 +286,18 @@ function paintVerdict(v) {
   $$("[data-settle]").forEach((b) => b.addEventListener("click", () => {
     const k = b.dataset.settle;
     const msg = {
-      valid: "Bond returned in full, tier 2 written to the reporter's ENS name.",
-      wrong: "Bond returned in full. Being wrong is not slop.",
-      fabricated: "Bond forfeited to the triage pool — not to you. A judge must not profit from the verdict.",
+      valid: "Bond returned. A tier was written to their ENS name.",
+      wrong: "Bond returned in full.",
+      fabricated: "Forfeited to the triage pool, not to you.",
     }[k];
-    toast(msg + " (contract not deployed yet)");
+    toast(msg);
   }));
 }
 
 /* ---------- board ---------------------------------------------------------- */
 async function loadBoard() {
-  waiting("#boardQueue", "Reading open disclosures from Arkiv…");
-  waiting("#extensions", "Checking whether anyone bought more time…");
+  waiting("#boardQueue", "Reading open disclosures…");
+  waiting("#extensions", "Checking for extensions…");
   try {
     const r = await fetch("/api/board");
     const d = await r.json();
@@ -306,24 +305,23 @@ async function loadBoard() {
 
     const soon = (d.rows || []).filter((x) => (x.daysLeft ?? 90) <= 14).length;
     $("#stats").innerHTML = [
-      [d.open || (d.rows || []).length, "open reports"],
+      [d.open ?? 0, "open reports"],
       [soon, "under 14 days"],
-      [(d.ghosts || []).length, "maintainers overdue"],
-      [(d.extensions || []).length, "deadlines extended"],
+      [(d.ghosts || []).length, "overdue"],
+      [(d.extensions || []).length, "extended"],
     ].map(([v, k]) => `<div class="stat"><div class="stat__v">${v}</div><div class="stat__k">${k}</div></div>`).join("");
 
     const ext = $("#extensions");
     if (!(d.extensions || []).length) {
       ext.innerHTML = `<div class="empty" style="padding:var(--s7)">
         <div class="empty__t">Nobody has bought more time</div>
-        <div class="empty__d">Every disclosure deadline on record is still the one it started with.
-        If that changes, Arkiv emits an event and it appears here within a block.</div></div>`;
+        <div class="empty__d">No deadline this instance owns has moved.</div></div>`;
     } else {
       ext.innerHTML = d.extensions.map((e) => `
         <div class="extended">
-          <span aria-hidden="true">⏱</span>
+          
           <div>
-            <div class="extended__t">A disclosure deadline was pushed back</div>
+            <div class="extended__t">Deadline pushed back</div>
             <div class="extended__m">${esc(e.entityKey)} → block ${esc(e.newExpiryBlock)} · by ${esc(e.owner)}</div>
           </div>
         </div>`).join("");
@@ -341,7 +339,7 @@ async function loadBoard() {
         <span class="qrow__r"><span class="days ${soonCls}">${it.daysLeft ?? "—"}</span>
         <span class="days__l">days left</span></span></div>`;
     }).join("") : `<div class="empty"><div class="empty__t">Nothing on the clock</div>
-      <div class="empty__d">No open disclosures right now.</div></div>`;
+      <div class="empty__d">No open disclosures.</div></div>`;
 
     $("#extPill").className = LIVE?.arkiv?.connected ? "pill pill--live" : "pill pill--sim";
     $("#extPill").textContent = LIVE?.arkiv?.connected ? "watching Arkiv" : "not connected";
@@ -465,7 +463,7 @@ if (repoInput) {
 
 /* ---------- the Projects board -------------------------------------------- */
 async function loadLanes() {
-  waiting("#lanesList", "Reading registered projects from Arkiv…");
+  waiting("#lanesList", "Reading projects…");
   const list = $("#lanesList");
   list.innerHTML = `<div style="padding:28px;text-align:center"><span class="spin"></span></div>`;
   try {
@@ -474,7 +472,7 @@ async function loadLanes() {
 
     $("#lanesSource").textContent = j.source === "arkiv"
       ? `${plural(j.lanes.length, "project", "projects")} read from Arkiv · Rabdi ${j.live?.arkiv?.chainId ?? ""}`
-      : `Arkiv unavailable (${j.source})`;
+      : "Arkiv unavailable";
 
     if (!j.lanes.length) {
       list.innerHTML = `<div class="card"><p class="note">No projects measured yet. Add one above.</p></div>`;
@@ -491,9 +489,9 @@ async function loadLanes() {
             promising ${l.windowDays}d
           </span>
         </div>
-        <div class="lane-row__m">${l.openIssues}<i>open</i></div>
-        <div class="lane-row__m">${l.unanswered}<i>unanswered</i></div>
-        <div class="lane-row__m">${l.oldestUnansweredDays || "—"}${l.oldestUnansweredDays ? "d" : ""}<i>longest wait</i></div>
+        <div class="lane-row__m">${l.openIssues}</div>
+        <div class="lane-row__m">${l.unanswered}</div>
+        <div class="lane-row__m">${l.oldestUnansweredDays || "—"}${l.oldestUnansweredDays ? "d" : ""}</div>
         <div class="lane-row__bond">${l.bondMultiple}&#215;</div>
       </div>`).join("");
   } catch (e) {
@@ -505,7 +503,7 @@ $("#laneMeasure")?.addEventListener("click", async () => {
   const slug = $("#laneSlug").value.trim();
   const windowDays = Number($("#laneWindow").value);
   const note = $("#laneNote");
-  if (!slug) { note.textContent = "Give me an owner/repo."; return; }
+  if (!slug) { note.textContent = "Enter an owner/repo."; return; }
   note.textContent = "reading GitHub…";
   try {
     const d = await measureRepo(slug, windowDays);
@@ -531,7 +529,12 @@ $("#laneMeasure")?.addEventListener("click", async () => {
    answer for a half-typed address cannot overwrite a fresh one, and show the
    busy state immediately rather than after the debounce.
    ======================================================================== */
-const TOKEN = "WASP";
+/* The ticker comes from the token's own symbol() via /api/health. It used to
+   be the literal "WASP" while the deployed contract answers "MOCK" — a
+   hard-coded unit sitting beside a number whose whole selling point is that
+   it was read from the chain. `tokens` is the fallback, because inventing a
+   ticker is what caused this. */
+const tokenSymbol = () => LIVE?.contracts?.tokenSymbol || "tokens";
 const isAddress = (s) => /^0x[0-9a-fA-F]{40}$/.test(s.trim());
 
 /* The last quote the chain gave us, so the submit button can state the real
@@ -551,7 +554,7 @@ function paintBondDefault() {
   panel.classList.remove("bondq--busy");
   panel.dataset.state = "default";
   $("#bondAmount").textContent = c.baseBond;
-  $("#bondUnit").textContent = `${TOKEN} — the full bond`;
+  $("#bondUnit").textContent = `${tokenSymbol()} — the full bond`;
   $("#bondReason").textContent =
     "This is the base bond for a reporter with no history and no tier. Enter an address to see what you would actually pay.";
   $("#bondLink").href = c.explorer;
@@ -565,7 +568,7 @@ function paintBond(q) {
   panel.dataset.state = q.waived ? "waived" : "due";
 
   $("#bondAmount").textContent = q.waived ? "Free" : q.bond;
-  $("#bondUnit").textContent = q.waived ? "no bond to post" : `${TOKEN} — refundable`;
+  $("#bondUnit").textContent = q.waived ? "no bond to post" : `${tokenSymbol()} — refundable`;
 
   /* Say WHY, because "0" means two very different things: a first-timer being
      let in, and a reputation that has already been earned. */
@@ -574,7 +577,7 @@ function paintBond(q) {
       ? `Tier ${q.tier} on this name waives the bond. That tier was earned on a previous report, and it is not ours to take away — it lives on the ENS name, not in our database.`
       : q.waived
         ? "First report from this address is free. The door is open by default; the bond only ever buys priority."
-        : `No tier on this name yet, so the full ${q.baseBond} ${TOKEN} applies. You get all of it back if the report is real — and all of it back if it is simply wrong.`;
+        : `No tier on this name yet, so the full ${q.baseBond} ${tokenSymbol()} applies. You get all of it back if the report is real — and all of it back if it is simply wrong.`;
 
   $("#bondLink").href = LIVE?.contracts?.explorer ?? "#";
 }
