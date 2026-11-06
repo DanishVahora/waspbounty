@@ -73,8 +73,34 @@ $("#submit").addEventListener("click", () => {
   setTimeout(() => show("desk"), 900);
 });
 
+
+/* ---------- waiting ---------------------------------------------------------
+   Reads against Arkiv and Sepolia take seconds, not milliseconds — the board
+   runs six queries against a testnet. For that whole time these panels used to
+   render as empty boxes, which does not read as "loading", it reads as broken.
+   Status is one of the four kinds of feedback a UI owes you, so say it.
+
+   Deliberately plain text rather than shimmering skeleton blocks: a skeleton
+   implies a known shape arriving imminently, and when a testnet is slow that
+   is a promise we cannot keep. A sentence naming the network you are waiting
+   on is honest and tells you where to look when it never arrives.
+
+   Both are function DECLARATIONS, not const arrows. show() runs during module
+   evaluation to pick the view from the URL hash, so it reaches these before
+   this point in the file — a const would still be in its temporal dead zone
+   and throw, taking the whole first render down with it. */
+function waitingFor(what) {
+  return `<div class="waiting"><span class="waiting__d" aria-hidden="true"></span>${esc(what)}</div>`;
+}
+
+function waiting(sel, what) {
+  const el = $(sel);
+  if (el) el.innerHTML = waitingFor(what);
+}
+
 /* ---------- desk ----------------------------------------------------------- */
 async function loadQueue() {
+  waiting("#queue", "Reading the queue from Arkiv…");
   const q = $("#queue");
   q.innerHTML = `<div style="padding:28px;text-align:center"><span class="spin"></span></div>`;
   try {
@@ -276,6 +302,8 @@ function paintVerdict(v) {
 
 /* ---------- board ---------------------------------------------------------- */
 async function loadBoard() {
+  waiting("#boardQueue", "Reading open disclosures from Arkiv…");
+  waiting("#extensions", "Checking whether anyone bought more time…");
   try {
     const r = await fetch("/api/board");
     const d = await r.json();
@@ -442,6 +470,7 @@ if (repoInput) {
 
 /* ---------- the Projects board -------------------------------------------- */
 async function loadLanes() {
+  waiting("#lanesList", "Reading registered projects from Arkiv…");
   const list = $("#lanesList");
   list.innerHTML = `<div style="padding:28px;text-align:center"><span class="spin"></span></div>`;
   try {

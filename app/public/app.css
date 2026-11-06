@@ -405,3 +405,26 @@ body[data-view="board"] .top__in{max-width:1120px}
 @media (max-width:620px){
   .bondq{grid-template-columns:minmax(0,1fr);gap:var(--s3)}
 }
+
+/* ---- waiting on a network ------------------------------------------------ *
+   One small pulsing dot and a sentence naming what is being read. The dot is
+   the only looping animation in the product, it is 6px, and it stops the
+   moment the answer arrives — a loop that runs forever trains people to stop
+   seeing it. Respects reduced motion by holding steady instead of pulsing. */
+.waiting{
+  display:flex;align-items:center;gap:9px;
+  padding:var(--s6) var(--s5);
+  font-size:var(--t-sm);color:var(--ink-3);
+}
+.waiting__d{
+  width:6px;height:6px;border-radius:50%;flex:none;
+  background:var(--amber);
+  animation:waitpulse 1.3s var(--ease) infinite;
+}
+@keyframes waitpulse{
+  0%,100%{opacity:.28;transform:scale(.82)}
+  50%    {opacity:1;transform:scale(1)}
+}
+@media (prefers-reduced-motion:reduce){
+  .waiting__d{animation:none;opacity:.8}
+}
