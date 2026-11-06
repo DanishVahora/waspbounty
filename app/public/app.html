@@ -58,6 +58,8 @@
 
     <!-- What is actually live, on every screen rather than only the desk.
          If a backend is down the whole app should say so, not one tab. -->
+    <button class="btn btn--sm btn--primary wallet-btn" id="connect">Connect wallet</button>
+
     <div class="top__live" id="topLive" aria-label="Backend status">
       <span class="livedot" data-live="arkiv" title="Arkiv"><i></i>Arkiv</span>
       <span class="livedot" data-live="chain" title="Sepolia"><i></i>Chain</span>
@@ -242,10 +244,18 @@
         <p class="field__h">A shorter promise on a slow project costs more. That is the whole mechanism.</p>
       </div>
     </div>
+    <div class="field">
+      <label class="field__l" for="lanePool">Pool you stake</label>
+      <input class="input" id="lanePool" value="100" inputmode="decimal">
+      <p class="field__h">Paid to a reporter if you miss your own window. Demo tokens.</p>
+    </div>
+
     <div class="actions">
-      <button class="btn btn--primary" id="laneMeasure">Measure it</button>
+      <button class="btn" id="laneMeasure">Measure it</button>
+      <button class="btn btn--primary" id="openLane">Open the lane</button>
       <span class="note" id="laneNote"></span>
     </div>
+    <p class="field__h">Measuring reads GitHub and costs nothing. Opening the lane is a transaction you sign.</p>
   </div>
 
   <div id="lanesList"></div>
@@ -284,6 +294,22 @@
 </section>
 
 </main>
+
+
+<!-- Every transaction reports here: building, waiting for signature, mined or
+     reverted, with a link to the explorer. One tray, so no screen has to
+     invent its own vocabulary for the same four states. -->
+<div class="tray" id="tray" role="status" aria-live="polite" hidden>
+  <div class="tray__row">
+    <span class="tray__dot" id="trayDot"></span>
+    <div class="grow">
+      <p class="tray__t" id="trayTitle">Working</p>
+      <p class="tray__s" id="trayNote"></p>
+    </div>
+    <a class="tray__a" id="trayLink" target="_blank" rel="noopener noreferrer" hidden>View</a>
+    <button class="tray__x" id="trayClose" aria-label="Dismiss">&times;</button>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="app.js" type="module"></script>

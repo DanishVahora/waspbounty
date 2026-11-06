@@ -66,27 +66,7 @@ $$(".lane").forEach((l) => l.addEventListener("click", () => {
   l.setAttribute("aria-pressed", "true");
 }));
 
-$("#submit").addEventListener("click", () => {
-  const lane = $('.lane[aria-pressed="true"]')?.dataset.lane ?? "priority";
-  const note = $("#submitNote");
-
-  if (lane === "free") {
-    note.textContent = "Queued for the enclave. No bond held, no wallet needed, no account.";
-    toast("Filed on the free lane. Nothing was charged.");
-  } else {
-    /* Quote the real number from the chain, and be exact about what did NOT
-       happen. The app never signs for anyone: posting the bond is a
-       transaction the reporter sends from their own wallet. Saying "escrowed"
-       here would claim a transfer that has not occurred. */
-    const q = LAST_QUOTE;
-    const amount = q ? (q.waived ? "no bond" : `${q.bond} ${TOKEN}`) : "your bond";
-    note.textContent = q?.waived
-      ? `Queued, and ${q.reason.toLowerCase()} — so there is nothing to sign.`
-      : `Next step is ${amount}, signed from your own wallet. We never hold your key, so nothing has moved yet.`;
-    toast(q?.waived ? "Filed — no bond was due." : `Filed. ${amount} to post when you sign.`);
-  }
-  setTimeout(() => show("desk"), 900);
-});
+/* The real handler is fileReport(), wired at the bottom of this file. */
 
 
 /* ---------- waiting ---------------------------------------------------------
@@ -642,4 +622,207 @@ $("#reporter").addEventListener("input", (e) => {
       $("#bondPanel").classList.remove("bondq--busy");
     }
   }, 320);
+});
+
+/* ============================================================================
+   THE TWO SIDES, ON CHAIN
+   ----------------------------------------------------------------------------
+   Until now every screen here was a read. This is where the product becomes
+   two-sided: a reporter files and posts a bond, a maintainer opens a lane and
+   settles. Both sign from their own wallet; this app never holds a key.
+
+   The sequence a reporter goes through, and why it is this order:
+     1. seal   — the body is encrypted and recorded on Arkiv, which returns
+                 the entity key. Done FIRST because submit() needs that key.
+     2. submit — the chain transaction, signed by the reporter.
+   Sealing before signing means a refused signature leaves a disclosure record
+   with no bond against it, which is recoverable. Signing first would put a
+   bond against a report that does not exist, which is not.
+   ========================================================================= */
+
+import * as W from "./wallet.js";
+
+const tray = {
+  el: () => $("#tray"),
+  show(state, title, note, link) {
+    const t = this.el();
+    t.hidden = false;
+    t.dataset.state = state;
+    $("#trayTitle").textContent = title;
+    $("#trayNote").textContent = note ?? "";
+    const a = $("#trayLink");
+    if (link) { a.hidden = false; a.href = link; } else { a.hidden = true; }
+  },
+  hide() { this.el().hidden = true; },
+};
+$("#trayClose")?.addEventListener("click", () => tray.hide());
+
+/* ---------- connect ---------------------------------------------------------- */
+function paintWallet(s) {
+  const b = $("#connect");
+  if (!b) return;
+  if (s.connected) {
+    b.dataset.connected = "1";
+    b.textContent = W.short(s.account);
+    b.title = s.account;
+  } else {
+    delete b.dataset.connected;
+    b.textContent = "Connect wallet";
+    b.title = "";
+  }
+}
+W.onChange(paintWallet);
+W.resume().then(() => paintWallet(W.state()));
+
+$("#connect")?.addEventListener("click", async () => {
+  if (W.state().connected) { toast("Switch accounts in your wallet"); return; }
+  try {
+    await W.connect();
+    toast("Wallet connected on Sepolia");
+  } catch (e) {
+    tray.show("fail", "Could not connect", e.message);
+  }
+});
+
+/* ---------- one place that signs ------------------------------------------------
+   Every write in the product goes through here, so the four states are
+   described identically wherever they happen. */
+async function signAndWait(what, args, { working, done }) {
+  tray.show("work", working ?? "Preparing the transaction", "Building the call data");
+  const req = await W.build(what, args);
+  tray.show("work", req.label ?? working, req.note ?? "Confirm it in your wallet");
+  const { hash } = await W.send(req, {
+    onHash: (h) => tray.show("work", "Waiting for a block", "Submitted — not confirmed yet.", W.txUrl(h)),
+  });
+  tray.show("done", done ?? "Confirmed", "Mined on Sepolia.", W.txUrl(hash));
+  return hash;
+}
+
+/* ---------- reporter: seal, then file -------------------------------------------- */
+async function fileReport() {
+  const repo = $("#repo").value.trim().toLowerCase();
+  const title = $("#title").value.trim();
+  const body = $("#body").value.trim();
+  const lane = $('.lane[aria-pressed="true"]')?.dataset.lane ?? "priority";
+  const note = $("#submitNote");
+
+  if (!repo || !title || !body) { note.textContent = "A project, a title and a description are needed."; return; }
+
+  try {
+    /* The lane must exist on chain before a report can be filed against it:
+       submit() reverts with RepoInactive otherwise. Say that in words rather
+       than letting the wallet show a raw revert. */
+    const lanes = await fetch(`/api/chain/lane?slug=${encodeURIComponent(repo)}`).then((r) => r.json());
+    if (!lanes.registered) {
+      note.textContent = `No lane is open for ${repo} yet. A maintainer has to open one first — see the Projects tab.`;
+      tray.show("fail", "That project has no lane yet",
+        "Nobody has staked a response pool for it, so there is nothing to report into.");
+      return;
+    }
+
+    tray.show("work", "Sealing the report", "Encrypting, then recording the disclosure clock on Arkiv.");
+    const sealRes = await fetch("/api/report/seal", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ repo, title, body, issue: $("#issue").value,
+        severity: $("#sev").value, lane, reporter: W.state().account }),
+    });
+    const sealed = await sealRes.json();
+    if (!sealRes.ok || sealed.error) throw new Error(sealed.error ?? "Could not record the report");
+
+    note.textContent = `Recorded as ${sealed.caseId}. Confirm the filing in your wallet.`;
+
+    await signAndWait("submit", { repoId: lanes.repoId, arkivKey: sealed.arkivKey, labelId: 0 },
+      { working: "Filing the report", done: `Filed — ${sealed.caseId}` });
+
+    note.textContent = `Filed. ${sealed.caseId} is on the clock, and the bond is held by the contract.`;
+    setTimeout(() => show("desk"), 1200);
+  } catch (e) {
+    note.textContent = e.message;
+    tray.show("fail", "The report was not filed", e.message);
+  }
+}
+
+$("#submit")?.addEventListener("click", fileReport);
+
+/* ---------- maintainer: open a lane ----------------------------------------------
+   registerRepo() stakes a pool and sets the window. Both are real money and a
+   real promise, so the control states the consequence before it is pressed,
+   not after. */
+async function openLane() {
+  const slug = ($("#laneSlug")?.value ?? "").trim().toLowerCase();
+  const pool = ($("#lanePool")?.value ?? "100").trim();
+  const days = ($("#laneWindow")?.value ?? "7").trim();
+  const note = $("#laneNote");
+
+  if (!/^[a-z0-9._-]+\/[a-z0-9._-]+$/.test(slug)) {
+    if (note) note.textContent = "Use the owner/repo form, lowercase.";
+    return;
+  }
+  try {
+    if (!W.state().connected) await W.connect();
+
+    /* The pool is pulled with transferFrom, so tokens and an allowance both
+       have to be in place first. Checking here means the user is told what is
+       missing instead of meeting a TransferFailed revert. */
+    const pre = await W.preflight(pool);
+    if (pre?.needsTokens) {
+      await signAndWait("mint", { to: W.state().account, amount: "500" },
+        { working: "Getting demo tokens", done: "500 WASP minted" });
+    }
+    if (pre?.needsApproval || pre?.needsTokens) {
+      await signAndWait("approve", { amount: "1000" },
+        { working: "Approving the bond currency", done: "Approved" });
+    }
+
+    await signAndWait("register", { slug, pool, windowDays: Number(days) },
+      { working: `Opening the lane for ${slug}`, done: `${slug} is open` });
+
+    if (note) note.textContent = `${slug} is live. Reports filed against it are now bonded both ways.`;
+    loadLanes();
+  } catch (e) {
+    if (note) note.textContent = e.message;
+    tray.show("fail", "The lane was not opened", e.message);
+  }
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#openLane")) openLane();
+});
+
+/* ---------- maintainer: settle ------------------------------------------------------
+   Three verdicts, and the enclave's opinion is only ever a suggestion — the
+   maintainer signs, so the maintainer decides. */
+async function settle(reportId, verdict) {
+  const words = { valid: "Settled as valid — bond refunded and a tier granted",
+                  goodFaith: "Settled as good faith — bond refunded in full",
+                  slop: "Settled as fabricated — bond sent to the triage pool" };
+  try {
+    await signAndWait("resolve", { reportId, verdict },
+      { working: "Settling the report", done: words[verdict] });
+    loadQueue();
+  } catch (e) {
+    tray.show("fail", "The report was not settled", e.message);
+  }
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-settle]");
+  if (!b) return;
+  const id = b.dataset.reportId;
+  if (!id) { toast("This case has no on-chain report id yet"); return; }
+  settle(id, b.dataset.settle);
+});
+
+/* ---------- anyone: claim a ghosted report --------------------------------------------
+   Deliberately not gated to the reporter. If the maintainer goes quiet past
+   the window, any passer-by can trigger the payout and the reporter is the
+   one paid — which is what stops the promise depending on the promiser. */
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-ghost]");
+  if (!b) return;
+  try {
+    await signAndWait("ghosted", { reportId: b.dataset.ghost },
+      { working: "Claiming the response bond", done: "Claimed — the reporter was paid" });
+    loadBoard();
+  } catch (err) {
+    tray.show("fail", "The claim did not go through", err.message);
+  }
 });

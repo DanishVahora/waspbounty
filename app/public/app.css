@@ -518,3 +518,36 @@ body[data-view] .welcome.is-done{display:none}
   font-variant-numeric:tabular-nums;
 }
 .lanenote{margin-top:var(--s5)}
+
+/* ---- wallet + transaction tray ---------------------------------------------
+   One tray for every signature in the product. It distinguishes four states
+   and never conflates them: building calldata, waiting on the wallet, mined,
+   reverted. "Submitted" and "confirmed" are different words here because they
+   are different facts, and a UI that blurs them teaches people to trust a
+   spinner instead of a receipt. */
+.wallet-btn{flex:none;margin-left:var(--s4)}
+.wallet-btn[data-connected="1"]{font-family:var(--mono);font-size:var(--t-xs);background:var(--card)}
+
+.tray{
+  position:fixed;right:var(--s6);bottom:var(--s6);z-index:120;
+  width:min(380px,calc(100vw - 48px));
+  background:var(--card);border:var(--bd);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-lift);padding:var(--s5);
+}
+.tray__row{display:flex;align-items:flex-start;gap:var(--s3)}
+.tray__dot{
+  width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px;
+  background:var(--ink-3);
+}
+.tray[data-state="work"] .tray__dot{background:var(--forest);animation:breathe 1.4s var(--ease) infinite}
+.tray[data-state="done"] .tray__dot{background:#1F9254}
+.tray[data-state="fail"] .tray__dot{background:var(--clay)}
+.tray__t{font-weight:600;font-size:var(--t-sm);color:var(--ink);line-height:1.35}
+.tray__s{font-size:var(--t-xs);color:var(--ink-3);margin-top:3px;line-height:1.45;overflow-wrap:anywhere}
+.tray__a{
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--ink-2);flex:none;
+  text-decoration:none;border-bottom:1px solid var(--line);margin-top:4px;
+}
+.tray__a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.tray__x{font-size:18px;line-height:1;color:var(--ink-3);flex:none;padding:0 2px}
+.tray__x:hover{color:var(--ink)}

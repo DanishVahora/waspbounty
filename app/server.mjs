@@ -22,6 +22,12 @@ import { repoIdFor, verifyRepoControl, repoExists, canonicalSlug, PROOF_PATH, Gi
 import { repoSignals, securityPosture, assessPromise } from "../src/github/signals.mjs";
 import { triage, assertTeeML, TRIAGE_MODEL, TriageError } from "../src/triage/zerog.mjs";
 import { chainStatus, bondQuote, laneState, reportState, tierRoles, ChainError } from "../src/chain/contract.mjs";
+import * as tx from "../src/chain/tx.mjs";
+import { ExpirationTime } from "@arkiv-network/sdk";
+import { str, u64, u256, addr } from "@arkiv-network/sdk/schema";
+import { Report } from "../src/arkiv/schema.mjs";
+import { clients as arkivClients, guardedCreate } from "../src/arkiv/client.mjs";
+import { seal, caseKey, upload as swarmUpload, configured as swarmReady, publicUrl } from "../src/swarm/client.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -290,6 +296,96 @@ const server = http.createServer(async (req, res) => {
 
     if (url.pathname === "/api/chain/tiers") return send(res, 200, await tierRoles());
 
+    /* ---------- seal a report and put it on the record ----------------------
+       The body is encrypted here, the ciphertext goes to Swarm when a postage
+       batch exists, and an Arkiv entity records the case with a 90-day
+       disclosure clock. The entity key it returns is what the reporter then
+       passes to submit() on Sepolia — so the chain carries a pointer to the
+       report without ever carrying the report.
+
+       The Arkiv entity is written by THIS server's wallet, not the reporter's.
+       That is a real limitation and the UI says so: a reporter would otherwise
+       need tGLM and an Arkiv access key before they could file anything. */
+    if (url.pathname === "/api/report/seal" && req.method === "POST") {
+      if (!account) return send(res, 503, { error: "This deployment is read-only — no Arkiv signer is configured, so reports cannot be recorded." });
+      const b = await readBody(req);
+      if (!b.repo || !b.title || !b.body) return send(res, 400, { error: "repo, title and body are required" });
+
+      const caseId = "wb-" + randomBytes(4).toString("hex");
+      const sealed = seal(String(b.body), caseKey(caseId));
+
+      let swarm = { stored: false, reason: "no postage batch configured" };
+      if (swarmReady()) {
+        try {
+          const up = await swarmUpload(sealed.blob, { name: `${caseId}.sealed` });
+          swarm = { stored: true, reference: up.reference, url: up.url };
+        } catch (e) { swarm = { stored: false, reason: String(e.message).slice(0, 160) }; }
+      }
+
+      const now = Date.now();
+      const values = {
+        caseId: str(caseId),
+        repo: str(String(b.repo).toLowerCase()),
+        issue: u64(BigInt(Number(b.issue) || 0)),
+        reporter: addr(b.reporter && /^0x[0-9a-fA-F]{40}$/.test(b.reporter) ? b.reporter : account.address),
+        severity: str(String(b.severity || "medium")),
+        state: str("open"),
+        lane: str(b.lane === "free" ? "free" : "priority"),
+        openedAt: u64(BigInt(now)),
+        disclosureAt: u64(BigInt(now + 90 * 86400000)),
+        bondWei: u256(0n),
+        digest: str(sealed.digest),
+        title: str(String(b.title).slice(0, 120)),
+        ...(swarm.stored ? { swarmRef: str(swarm.reference) } : {}),
+        sealed: swarm.stored ? new Uint8Array(0) : new Uint8Array(sealed.blob),
+      };
+
+      const c = arkivClients(account, accessKeyFromEnv());
+      const out = await guardedCreate(c, account, accessKeyFromEnv(), Report, values,
+        { expiration: ExpirationTime.fromDays(90), flags: { readonly: false, permissionlessExtension: false } },
+        { label: "report" });
+
+      return send(res, 200, {
+        caseId,
+        arkivKey: out.entityKey,
+        txHash: out.txHash,
+        digest: sealed.digest,
+        bytes: sealed.bytes,
+        swarm,
+        recordedBy: account.address,
+      });
+    }
+
+    /* ---------- transaction building ---------------------------------------
+       The server encodes calldata and hands back { to, data }. It does not
+       sign, does not send, and holds no key — the wallet does all three. A
+       compromised server could at worst propose a transaction the user still
+       has to read in MetaMask and approve. */
+    if (url.pathname === "/api/tx/chain") return send(res, 200, tx.chainInfo());
+
+    if (url.pathname === "/api/tx/preflight") {
+      const who = url.searchParams.get("who");
+      const need = url.searchParams.get("need") ?? "0";
+      return send(res, 200, await tx.preflight({ who, need }));
+    }
+
+    if (url.pathname.startsWith("/api/tx/") && req.method === "POST") {
+      const what = url.pathname.slice("/api/tx/".length);
+      const body = await readBody(req);
+      const builders = {
+        mint: tx.buildMint,
+        approve: tx.buildApprove,
+        register: tx.buildRegisterRepo,
+        topup: tx.buildTopUp,
+        submit: tx.buildSubmit,
+        resolve: tx.buildResolve,
+        ghosted: tx.buildClaimGhosted,
+      };
+      const build = builders[what];
+      if (!build) return send(res, 404, { error: `no transaction called ${what}` });
+      return send(res, 200, { ...build(body), chain: tx.chainInfo() });
+    }
+
     if (url.pathname === "/api/triage" && req.method === "POST") {
       const body = await readBody(req);
       const item = DEMO.find((d) => d.caseId === body.caseId) || body;
@@ -335,7 +431,8 @@ const server = http.createServer(async (req, res) => {
     });
     fs.createReadStream(file).pipe(res);
   } catch (e) {
-    const msg = e instanceof TriageError || e instanceof ChainError ? e.message : scrub(e);
+    const msg = e instanceof TriageError || e instanceof ChainError || e instanceof tx.TxError
+      ? e.message : scrub(e);
     send(res, 500, { error: msg });
   }
 });
