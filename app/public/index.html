@@ -64,10 +64,34 @@
       <span id="heroStat">Reading the networks…</span>
     </p>
 
-    <figure class="shot shot--hero" data-img="hero">
-      <img src="img/hero.webp" alt="" onerror="this.closest('.shot').dataset.empty='1';this.remove()">
-      <figcaption class="shot__ph"><span class="eyebrow">Image 1 — Hero</span></figcaption>
-    </figure>
+    <div class="stage">
+      <!-- Text on a circle, the way the reference does it: one SVG textPath,
+           no library. It turns slowly and continuously because a bond is a
+           clock that is already running, and it stops dead for anyone who
+           asked for less motion. -->
+      <svg class="ring" viewBox="0 0 440 440" aria-hidden="true">
+        <defs>
+          <path id="ringPath" d="M220,220 m-168,0 a168,168 0 1,1 336,0 a168,168 0 1,1 -336,0"/>
+        </defs>
+        <text class="ring__t">
+          <textPath href="#ringPath" startOffset="0">
+            Reporting is always free · The bond only ever buys priority · Wrong is not slop · Keep your word, keep your money ·
+          </textPath>
+        </text>
+      </svg>
+
+      <figure class="shot shot--hero" data-img="hero">
+        <img src="img/hero.webp" alt="A brass beam balance: a bound sheaf of papers in one pan, a weight in the other." onerror="this.closest('.shot').dataset.empty='1';this.remove()">
+        <figcaption class="shot__ph"><span class="eyebrow">Image 1 — Hero</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== LIVE RIBBON ===================== -->
+<section class="ribbon" aria-label="Reports currently on the disclosure clock">
+  <div class="ribbon__track" id="ribbonTrack">
+    <span class="ribbon__item">Reading the disclosure clock…</span>
   </div>
 </section>
 

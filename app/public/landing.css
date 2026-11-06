@@ -117,12 +117,54 @@
 .proof__n{font-size:clamp(1.75rem,1.4rem + 1.2vw,2.25rem);line-height:1.1;margin:var(--s4) 0 var(--s1)}
 .proof[data-state="down"] .proof__n{color:var(--ink-3)}
 
-/* ---------- image slots -----------------------------------------------------------
-   The real image drops in at img/<name>.webp. Until it does, the slot shows a
-   labelled placeholder rather than a broken-image icon — and when the file is
-   missing the img element removes itself, so nothing renders a torn page. */
-.shot{margin:var(--s11) auto 0;max-width:960px;position:relative}
-.shot img{width:100%;height:auto;border-radius:var(--r-lg);border:var(--bd)}
+/* ---------- image slots -----------------------------------------------------
+   Plates in a journal, not billboards. The first version ran them 960px wide
+   with an ink border, which made each one a slab pasted onto the page rather
+   than part of it — the border was doing the damage, because a hard edge
+   around a photograph whose own ground is the same cream as the page draws a
+   rectangle that need not exist.
+
+   So: no border on cream, multiply blending so the photograph's ivory becomes
+   the page's ivory, and sizes set per image rather than one width for all.
+   The portrait is held hardest, since its natural height is what made the
+   enclave section feel like scrolling past a poster. */
+.shot{margin:var(--s10) auto 0;position:relative}
+.shot img{width:100%;height:auto;border-radius:var(--r-lg)}
+
+/* On cream, the photograph dissolves into the page. */
+.section .shot img,
+.hero .shot img{
+  mix-blend-mode:multiply;filter:saturate(.96);border-radius:0;
+  /* Multiply alone was not enough: the photograph's ivory is a shade darker
+     than the page's, so a rectangle still showed. A soft inset mask feathers
+     all four edges into the cream, which is what makes it read as printed on
+     the page rather than placed on top of it. */
+  -webkit-mask-image:
+    linear-gradient(to right,transparent,#000 7%,#000 93%,transparent),
+    linear-gradient(to bottom,transparent,#000 6%,#000 92%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(to right,transparent,#000 7%,#000 93%,transparent),
+    linear-gradient(to bottom,transparent,#000 6%,#000 92%,transparent);
+  mask-composite:intersect;
+}
+
+/* Landscape plates, held well short of the text column's full width. */
+.shot[data-img="asymmetry"]{max-width:560px}
+.shot[data-img="clock"]{max-width:620px}
+
+/* The portrait is the one that sprawled. Capped by height, not width, so it
+   can never dictate how tall its section is. */
+.shot[data-img="enclave"]{max-width:300px}
+.shot[data-img="enclave"] img{max-height:400px;width:auto;margin-inline:auto}
+
+/* Inside a forest band, multiply would crush the image, so it keeps a quiet
+   rounded frame instead and stays small. */
+.band .shot img{
+  border-radius:var(--r-lg);
+  border:1px solid var(--line-forest);
+}
+
 .shot__ph{display:none}
 .shot[data-empty="1"] .shot__ph{
   display:grid;place-items:center;
@@ -130,7 +172,6 @@
   border-radius:var(--r-lg);background:var(--cream-2);
 }
 .band .shot[data-empty="1"] .shot__ph{background:var(--forest-2);border-color:var(--line-forest)}
-.shot--hero{margin-top:var(--s10)}
 
 /* ---------- foot -------------------------------------------------------------------- */
 .foot{padding:var(--s9) 0 var(--s10);border-top:1.6px solid var(--line)}
@@ -166,3 +207,94 @@
    page, so no rectangle shows even if the generated background is a shade off.
    Not applied inside a band: multiplying onto forest would crush it. */
 .section .shot img{mix-blend-mode:multiply;filter:saturate(.96)}
+
+/* ============================================================================
+   MOTION
+   ----------------------------------------------------------------------------
+   Four moving things, and each one is tied to something true: a clock that is
+   running, reports that actually exist, figures counting to their real value,
+   and feedback under the pointer. Nothing floats, nothing parallaxes, and
+   nothing is hidden waiting for a scroll listener to fire.
+   ========================================================================= */
+
+/* ---------- the hero stage ----------------------------------------------- */
+.stage{
+  position:relative;margin:var(--s11) auto 0;max-width:980px;
+  display:grid;place-items:center;
+}
+.stage .shot--hero{margin:0;width:100%;max-width:620px}
+
+/* Text on a circle. One SVG textPath, no library — the same technique the
+   reference uses for its curved copy. It sits behind the photograph at the
+   left, turning once a minute: present, never distracting. */
+.ring{
+  position:absolute;left:0;top:50%;translate:0 -50%;
+  width:clamp(200px,22vw,290px);aspect-ratio:1;z-index:0;
+  pointer-events:none;
+  animation:ringspin 64s linear infinite;
+}
+.ring__t{
+  font-family:var(--sans);font-size:17px;font-weight:600;
+  letter-spacing:.055em;fill:var(--ink);opacity:.26;
+  text-transform:uppercase;
+}
+@keyframes ringspin{to{rotate:360deg}}
+
+.stage .shot{position:relative;z-index:1}
+.stage .shot img{mix-blend-mode:multiply;filter:saturate(.96)}
+
+@media (prefers-reduced-motion:reduce){ .ring{animation:none} }
+@media (max-width:1100px){ .ring{display:none} }
+
+/* ---------- the live ribbon -----------------------------------------------
+   A forest band carrying the reports that are genuinely on the clock right
+   now, read from Arkiv. The reference runs a logo marquee here; ours runs
+   real cases, because we have real cases and a logo wall would be a lie.
+
+   The track holds the list twice and translates by exactly -50%, which is
+   what makes an infinite loop seamless rather than visibly snapping back. */
+.ribbon{
+  background:var(--forest);color:var(--on-forest);
+  padding:var(--s5) 0;overflow:hidden;
+  border-top:1.6px solid var(--ink);border-bottom:1.6px solid var(--ink);
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent);
+  mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent);
+}
+.ribbon__track{
+  display:flex;gap:var(--s9);width:max-content;
+  animation:marquee 58s linear infinite;
+}
+.ribbon:hover .ribbon__track{animation-play-state:paused}
+.ribbon__item{
+  display:inline-flex;align-items:baseline;gap:var(--s3);
+  font-size:var(--t-sm);white-space:nowrap;color:var(--on-forest-2);
+}
+.ribbon__item b{font-weight:600;color:var(--on-forest)}
+.ribbon__d{font-family:var(--mono);font-variant-numeric:tabular-nums slashed-zero;color:var(--mint)}
+.ribbon__d--soon{color:#FF9B8A}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){
+  .ribbon__track{animation:none;width:100%;overflow-x:auto}
+}
+
+/* ---------- reveal on approach --------------------------------------------
+   Content is visible by default. The hidden state is applied by script, and
+   only once the observer is known to exist — and a failsafe reveals
+   everything after two seconds whatever happens, so a section can never be
+   left invisible the way it was when I first built this. */
+@media (prefers-reduced-motion:no-preference){
+  .js-reveal{opacity:0;transform:translateY(14px)}
+  .js-reveal.in{opacity:1;transform:none;
+    transition:opacity 520ms var(--ease),transform 520ms var(--ease)}
+}
+
+/* ---------- counters ------------------------------------------------------- */
+.proof__n{font-variant-numeric:tabular-nums slashed-zero}
+
+/* ---------- card and button feel -------------------------------------------
+   A press, not a hover-lift. The card nudges its border and surface; the
+   button scales a hair on press. Nothing scales up on hover, which is the
+   tell of a template. */
+.card{transition:border-color var(--d1) var(--ease),background var(--d1) var(--ease)}
+.verdict:hover{border-color:var(--ink);background:var(--cream-2)}
+.proof:hover{border-color:var(--ink)}

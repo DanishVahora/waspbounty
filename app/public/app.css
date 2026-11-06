@@ -436,3 +436,57 @@ body[data-view="board"] .top__in{max-width:1120px}
 @media (prefers-reduced-motion:reduce){
   .waiting__d{animation:none;opacity:.8}
 }
+
+/* ============================================================================
+   THE WELCOME
+   ----------------------------------------------------------------------------
+   A seal pressing onto paper. The mark drops and settles — one overshoot, the
+   weight of something landing — the name fades up beneath it, then the sheet
+   lifts away to reveal an app that was already rendered behind it.
+
+   Three rules it obeys:
+   · It never blocks. The app renders underneath from the first frame, so a
+     slow network delays data, not the interface.
+   · It runs once per tab. A splash you meet twice is an obstacle, so it is
+     suppressed on every later view in the same session.
+   · Reduced motion skips it entirely rather than playing it faster.
+   ========================================================================= */
+.welcome{
+  position:fixed;inset:0;z-index:200;
+  display:grid;place-content:center;justify-items:center;gap:var(--s4);
+  background:var(--cream);
+  animation:welcomeOut 420ms var(--ease) 1150ms both;
+  pointer-events:none;
+}
+.welcome__seal{
+  width:56px;height:56px;border-radius:12px;
+  background:var(--forest);
+  clip-path:polygon(0 0,100% 0,100% 58%,58% 100%,0 100%);
+  animation:sealDrop 620ms cubic-bezier(.3,1.5,.5,1) both;
+}
+.welcome__n{
+  font-family:var(--serif);font-size:1.75rem;font-weight:400;
+  letter-spacing:-.015em;color:var(--ink);
+  animation:welcomeFade 460ms var(--ease) 300ms both;
+}
+.welcome__s{
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--ink-3);
+  margin-top:calc(var(--s3) * -1);
+  animation:welcomeFade 460ms var(--ease) 420ms both;
+}
+
+/* the seal falls, lands slightly hard, and settles */
+@keyframes sealDrop{
+  0%  {opacity:0;transform:translateY(-28px) scale(.82)}
+  100%{opacity:1;transform:none}
+}
+@keyframes welcomeFade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+/* the sheet lifts off the app rather than dissolving into it */
+@keyframes welcomeOut{to{opacity:0;transform:translateY(-14px)}}
+
+body[data-welcomed="1"] .welcome,
+body[data-view] .welcome.is-done{display:none}
+
+@media (prefers-reduced-motion:reduce){
+  .welcome{display:none}
+}

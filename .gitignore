@@ -10,3 +10,6 @@ coverage/
 .DS_Store
 .secrets/
 build/
+
+# Generated source images — the sized .webp files beside them are what ships.
+app/public/img/*.png

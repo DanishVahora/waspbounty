@@ -8,6 +8,21 @@ let LIVE = null;
 let QUEUE = [];
 let current = null;
 
+/* ---------- the welcome -----------------------------------------------------
+   Removed from the DOM once it has played, so it can never intercept a click
+   or sit in the tab order. Suppressed for the rest of the session, because a
+   splash you meet on every tab switch stops being a welcome and becomes a
+   toll gate. */
+(() => {
+  const w = document.getElementById("welcome");
+  if (!w) return;
+  let seen = false;
+  try { seen = sessionStorage.getItem("wb:welcomed") === "1"; } catch { /* private mode */ }
+  if (seen || matchMedia("(prefers-reduced-motion: reduce)").matches) { w.remove(); return; }
+  try { sessionStorage.setItem("wb:welcomed", "1"); } catch { /* ignore */ }
+  setTimeout(() => w.remove(), 1700);
+})();
+
 /* ---------- chrome ---------------------------------------------------------
    The four screens are addressable: /app#desk opens the desk. The landing page
    links straight into each one, so without this every door on the front page
