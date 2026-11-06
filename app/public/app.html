@@ -59,9 +59,9 @@
     <!-- What is actually live, on every screen rather than only the desk.
          If a backend is down the whole app should say so, not one tab. -->
     <div class="top__live" id="topLive" aria-label="Backend status">
-      <span class="dot" data-live="arkiv" title="Arkiv"><i></i>Arkiv</span>
-      <span class="dot" data-live="chain" title="Sepolia"><i></i>Chain</span>
-      <span class="dot" data-live="zerog" title="0G enclave"><i></i>Enclave</span>
+      <span class="livedot" data-live="arkiv" title="Arkiv"><i></i>Arkiv</span>
+      <span class="livedot" data-live="chain" title="Sepolia"><i></i>Chain</span>
+      <span class="livedot" data-live="zerog" title="0G enclave"><i></i>Enclave</span>
     </div>
   </div>
 </header>
@@ -71,20 +71,20 @@
 <!-- ============================ REPORT ============================ -->
 <section class="page view" id="view-report">
   <div class="head">
-    <h1 class="title">Found something? The door is open.</h1>
+    <h1 class="title">Found something?</h1>
     <p class="sub">
-      Reporting is free, always, with no wallet and no questions. If you want a
-      guaranteed human answer within 72 hours, you can post a refundable bond —
-      and the maintainer posts one back.
+      Reporting is free and always will be. A bond only buys you a guaranteed
+      answer.
     </p>
   </div>
 
   <div class="card">
+    <p class="step"><span class="step__n">1</span>What did you find?</p>
     <div class="field">
       <label class="field__l" for="repo">Project</label>
       <input class="input" id="repo" value="curl/curl" spellcheck="false"
              placeholder="owner/repo, or paste a GitHub URL" autocomplete="off">
-      <p class="field__h" id="repoHint">Any public GitHub project. We read its issue tracker, not its promises.</p>
+      <p class="field__h" id="repoHint">Any public GitHub project.</p>
     </div>
 
     <!-- What this project's OWN record says. Measured live from GitHub. -->
@@ -113,7 +113,7 @@
           <option value="high" selected>High</option>
           <option value="critical">Critical</option>
         </select>
-        <p class="field__h">An honest guess is fine. Getting this wrong costs you nothing.</p>
+        <p class="field__h">A guess is fine.</p>
       </div>
       <div class="field">
         <label class="field__l" for="issue">Issue number</label>
@@ -129,15 +129,12 @@
     <div class="field">
       <label class="field__l" for="body">What did you find?</label>
       <textarea class="textarea" id="body" spellcheck="false">A crafted PASV response of 600 bytes causes an unchecked memcpy into a fixed 512-byte buffer in lib/ftp.c. Reachable by any client following a redirect to an attacker-controlled FTP server.</textarea>
-      <p class="field__h">
-        This is sealed before it is recorded. Everything on Arkiv is public, so
-        only an encrypted blob and a checksum ever leave your machine.
-      </p>
+      <p class="field__h">Encrypted before it is recorded. Only a sealed blob leaves your machine.</p>
     </div>
   </div>
 
   <div class="card">
-    <div class="card__h"><span class="card__t">Pick a lane</span></div>
+    <p class="step"><span class="step__n">2</span>How fast do you need an answer?</p>
 
     <!-- The bond is never a number this page chose. It is bondFor() on Sepolia,
          which reaches into the live ENSv2 registry to decide whether a tier on
@@ -146,7 +143,7 @@
       <label class="field__l" for="reporter">Your address <span class="field__opt">— optional, only to quote your bond</span></label>
       <input class="input" id="reporter" spellcheck="false" autocomplete="off"
              placeholder="0x… — leave empty to see the default bond">
-      <p class="field__h" id="reporterHint">We read your tier from ENS. We never ask you to sign anything here.</p>
+      <p class="field__h" id="reporterHint">Read from ENS. Nothing to sign.</p>
     </div>
 
     <div class="bondq" id="bondPanel" hidden>
@@ -166,22 +163,17 @@
     <div class="lanes">
       <button class="lane lane--free" data-lane="free" aria-pressed="false">
         <span class="lane__t">Free lane</span>
-        <span class="lane__d">No wallet, no bond. The enclave reads everything here and escalates anything that looks real.</span>
+        <span class="lane__d">No wallet. The enclave still reads it.</span>
         <span class="lane__p">always open</span>
       </button>
       <button class="lane" data-lane="priority" aria-pressed="true">
         <span class="lane__t">Priority lane</span>
-        <span class="lane__d">Post a refundable bond. A human answers within the window, or the maintainer's bond pays out to you.</span>
+        <span class="lane__d">A human answers, or their bond pays you.</span>
         <span class="lane__p" id="lanePrice">refundable · reading chain…</span>
       </button>
     </div>
 
-    <div class="humanline">
-      <span aria-hidden="true">⚖</span>
-      <span><b>The bond never buys permission — only priority.</b> You get it back
-      in full if your report is real, and in full if it is simply wrong. It is
-      kept only when a report is fabricated.</span>
-    </div>
+    <p class="field__h lanenote">You get the bond back if the report is real, and back in full if it is simply wrong.</p>
 
     <div class="actions">
       <button class="btn btn--primary" id="submit">Submit report</button>

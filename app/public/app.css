@@ -76,20 +76,21 @@ body[data-view="board"] .top__in{max-width:1120px}
    you should be able to tell at a glance whether what you are looking at is
    real, without reading a word. */
 .top__live{display:flex;gap:var(--s4);flex:none;margin-left:var(--s5);align-items:center}
-.dot{
+.livedot{
   display:inline-flex;align-items:center;gap:6px;flex:none;
+  width:auto;height:auto;border-radius:0;background:none;
   font-family:var(--sans);font-size:var(--t-xs);font-weight:600;
   letter-spacing:.01em;color:var(--ink-3);white-space:nowrap;
 }
-.dot i{
+.livedot i{
   width:7px;height:7px;border-radius:50%;flex:none;
   background:var(--ink-3);border:none;
   transition:background var(--d2) var(--ease);
 }
-.dot[data-state="up"]{color:var(--ink-2)}
-.dot[data-state="up"] i{background:#1F9254}
-.dot[data-state="warn"] i{background:#C98A1E}
-.dot[data-state="down"] i{background:var(--clay)}
+.livedot[data-state="up"]{color:var(--ink-2)}
+.livedot[data-state="up"] i{background:#1F9254}
+.livedot[data-state="warn"] i{background:#C98A1E}
+.livedot[data-state="down"] i{background:var(--clay)}
 @media (max-width:680px){
   .top__in{flex-wrap:wrap;gap:var(--s3)}
   .tabs{margin-left:0;width:100%;justify-content:space-between}
@@ -225,10 +226,17 @@ body[data-view="board"] .top__in{max-width:1120px}
 .btn:hover{border-color:var(--ink);transform:none}
 .btn:active{transform:translateY(1px);box-shadow:none}
 /* only the primary action gets the pressed-paper treatment */
-.btn--primary{background:var(--forest);border-color:var(--ink);box-shadow:none}
-.btn--primary{background:var(--forest);color:var(--ink);border-color:transparent}
+/* The primary button, declared HERE rather than relying on theme.css.
+   `.btn` and `.btn--primary` are both single-class selectors, so specificity
+   is equal and source order decides — and this file loads after theme.css.
+   Leaving it to the theme meant `.btn { background: var(--card) }` below won
+   and the primary button rendered plain white.
+
+   It previously carried a forest fill with ink text, which is dark on dark:
+   the Submit button was effectively unreadable. Mint fill, ink text, ink
+   border — 13.6:1, and the same button as the landing page. */
+.btn--primary{background:var(--mint);color:var(--ink);border-color:var(--ink)}
 .btn--primary:hover{background:var(--mint-deep)}
-.btn--primary:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
 .btn--danger{color:var(--clay);border-color:var(--clay)}
 .btn--danger:hover{background:var(--clay-wash);border-color:var(--clay)}
 .btn--good{color:var(--forest);border-color:var(--forest)}
@@ -490,3 +498,23 @@ body[data-view] .welcome.is-done{display:none}
 @media (prefers-reduced-motion:reduce){
   .welcome{display:none}
 }
+
+/* ---- steps ----------------------------------------------------------------
+   The report screen is two decisions, and it used to present them as two
+   unlabelled boxes — so it read as one long form and people could not tell
+   where they were in it. Numbering the two cards is the whole fix: a reader
+   who can see there are exactly two steps will finish both. */
+.step{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--serif);font-size:1.3rem;font-weight:400;
+  letter-spacing:-.012em;color:var(--ink);
+  margin-bottom:var(--s6);
+}
+.step__n{
+  display:grid;place-items:center;flex:none;
+  width:26px;height:26px;border-radius:50%;
+  border:1.6px solid var(--ink);background:var(--mint);
+  font-family:var(--sans);font-size:.8125rem;font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.lanenote{margin-top:var(--s5)}

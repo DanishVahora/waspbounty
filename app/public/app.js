@@ -162,7 +162,7 @@ function paintStatus() {
     zerog: z.connected ? "up" : z.keyPresent ? "warn" : "down",
   };
   for (const [k, v] of Object.entries(state)) {
-    const el = $(`.dot[data-live="${k}"]`);
+    const el = $(`.livedot[data-live="${k}"]`);
     if (el) el.dataset.state = v;
   }
 
