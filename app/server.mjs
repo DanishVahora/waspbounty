@@ -21,6 +21,7 @@ import { expiringSoon, ghostCandidates, countOpen, watchExtensions, repoLanes, l
 import { repoIdFor, verifyRepoControl, repoExists, canonicalSlug, PROOF_PATH, GitHubError } from "../src/github/identity.mjs";
 import { repoSignals, securityPosture, assessPromise } from "../src/github/signals.mjs";
 import { triage, assertTeeML, TRIAGE_MODEL, TriageError } from "../src/triage/zerog.mjs";
+import { chainStatus, bondQuote, laneState, reportState, tierRoles, ChainError } from "../src/chain/contract.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(HERE, "public");
@@ -88,7 +89,9 @@ async function liveStatus() {
       signatureCheck: "unavailable via Router — provider verified by address instead",
       reason: teeError,
     },
-    contracts: { connected: false, reason: "not deployed yet" },
+    /* Read from Sepolia every time rather than trusting the deployment file:
+       "connected" means the contract answered just now. */
+    contracts: await chainStatus(),
   };
 }
 
@@ -240,6 +243,34 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    /* ---------- chain reads ------------------------------------------------
+       All four are live calls to Sepolia. The bond one is the important one:
+       it reaches through our contract into the real ENSv2 registry, so the
+       number it returns is not ours to decide. */
+    if (url.pathname === "/api/chain/bond") {
+      const reporter = url.searchParams.get("reporter");
+      if (!reporter || !/^0x[0-9a-fA-F]{40}$/.test(reporter)) {
+        return send(res, 400, { error: "reporter must be a 0x address" });
+      }
+      return send(res, 200, await bondQuote(reporter, url.searchParams.get("labelId") || 0));
+    }
+
+    if (url.pathname === "/api/chain/lane") {
+      const slug = url.searchParams.get("slug");
+      if (!slug) return send(res, 400, { error: "slug required" });
+      return send(res, 200, await laneState(slug));
+    }
+
+    if (url.pathname === "/api/chain/report") {
+      const id = url.searchParams.get("id");
+      if (!id || !/^0x[0-9a-fA-F]{64}$/.test(id)) {
+        return send(res, 400, { error: "id must be a 0x-prefixed bytes32" });
+      }
+      return send(res, 200, await reportState(id));
+    }
+
+    if (url.pathname === "/api/chain/tiers") return send(res, 200, await tierRoles());
+
     if (url.pathname === "/api/triage" && req.method === "POST") {
       const body = await readBody(req);
       const item = DEMO.find((d) => d.caseId === body.caseId) || body;
@@ -280,7 +311,7 @@ const server = http.createServer(async (req, res) => {
     });
     fs.createReadStream(file).pipe(res);
   } catch (e) {
-    const msg = e instanceof TriageError ? e.message : scrub(e);
+    const msg = e instanceof TriageError || e instanceof ChainError ? e.message : scrub(e);
     send(res, 500, { error: msg });
   }
 });

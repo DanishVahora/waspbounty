@@ -101,6 +101,28 @@ try {
   });
   console.log("    bondFor(unknown reporter) :", formatEther(bond), "— 0 means first report is free");
 
+  /* Record it. The app reads this file rather than carrying a hard-coded
+     address — ENS asks for a functional demo with no hard-coded values, and a
+     redeploy should not mean editing the front end. */
+  const record = {
+    chainId,
+    network: "sepolia",
+    deployedAt: new Date().toISOString(),
+    deployer: account.address,
+    contracts: {
+      WaspBounty: { address: bounty.address, txHash: bounty.hash, gasUsed: String(bounty.gasUsed) },
+      MockToken: { address: token.address, txHash: token.hash, gasUsed: String(token.gasUsed) },
+    },
+    ensRegistry: ENS_ETH_REGISTRY,
+    baseBondWei: BASE_BOND.toString(),
+    triageSteward: account.address,
+    explorer: "https://sepolia.etherscan.io/address/",
+  };
+  const out = path.join(HERE, "..", "deployments.sepolia.json");
+  fs.writeFileSync(out, JSON.stringify(record, null, 2) + "\n");
+  console.log("");
+  console.log("  wrote", path.relative(path.join(HERE, ".."), out));
+
   const after = await pub.getBalance({ address: account.address });
   console.log("");
   console.log("  spent :", formatEther(balance - after), "ETH");
