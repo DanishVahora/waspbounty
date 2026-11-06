@@ -80,6 +80,12 @@ async function liveStatus() {
       verifiability: teeCard?.verifiability ?? null,
       teeType: teeCard?.teeType ?? null,
       teeVerifier: teeCard?.teeVerifier ?? null,
+      /* The two lists are the whole point: the same model is served by an
+         enclave provider and by ordinary ones. `private` trust mode is what
+         keeps us on the first list, and we check the address afterwards. */
+      teeProviders: teeCard?.teeProviders ?? [],
+      nonTeeProviders: teeCard?.nonTeeProviders ?? [],
+      signatureCheck: "unavailable via Router — provider verified by address instead",
       reason: teeError,
     },
     contracts: { connected: false, reason: "not deployed yet" },
