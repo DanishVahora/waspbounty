@@ -1,110 +1,99 @@
 /* ============================================================================
-   WASP BOUNTY  ·  "NIGHT SHIFT"
+   WASP BOUNTY  ·  design system
    ----------------------------------------------------------------------------
-   DIRECTION
+   Light, editorial, printed. A classical serif at display size with an italic
+   turn in the middle of the sentence, a geometric sans for everything you
+   operate, cream paper, and deep green bands that cut in with a big radius.
 
-   Product    A refundable bond on open source security reports. For the
-              maintainer buried in AI-written reports, and for the honest
-              researcher shut out when the door closed.
-   Character  Exact, nocturnal, unhurried.
-   World      The 2am inbox. Instruments, night shifts, a docket, a clock that
-              is already running. Technical and dark, so the neutrals are
-              tinted toward ink rather than grey.
-   Moments    Two, and only two, carry colour and detail: the enclave's verdict
-              with its request id and provider address, and the bond figure
-              that changes as you type an address.
-   Signature  The CLOCK COLUMN. Ninety vertical rules, one per day of the
-              disclosure window, with the days already spent lit. It appears in
-              the hero and again beside every report. Stripes as structure
-              rather than wallpaper: they are the product's own unit of time.
+   Measured from the reference, not guessed at:
+     ground        #FFFFEB      (rgb(255,255,235))
+     ink           #1A1A1A      (rgb(26,26,26))
+     display       EB Garamond, 96px, weight 400, centred, italic emphasis
+     interface     Figtree
+     band corners  80px 80px 0 0
+     button        1.6px solid ink · radius 12px · padding 16px 24px · 600
 
-   Replaces "Court Paper" (warm paper, amber, editorial serif) entirely. The
-   serif is gone, the paper is gone, the amber is gone. Geist and Geist Mono
-   stay because they are already self-hosted and the venue wifi is not to be
-   trusted — a typeface that fails to load is worse than one you have seen.
+   The hues are ours: deep forest for the bands and pale mint for the accent,
+   because this product is about a bond coming back, not about voice.
 
-   Craft rules from unslop by Damir Sokolovsky (@heydamir), CC BY 4.0.
+   Both faces are self-hosted. Nothing here fetches a font at runtime, because
+   a venue network that drops Google Fonts would otherwise re-render the whole
+   page in Times New Roman at the worst possible moment.
    ========================================================================= */
 
-/* ---------- 1. FACES (self-hosted; zero network at runtime) -------------- */
-@font-face{font-family:"Geist";src:url("fonts/geist-var.woff2") format("woff2");font-weight:300 800;font-display:swap;font-style:normal}
-@font-face{font-family:"Geist Mono";src:url("fonts/geist-mono-var.woff2") format("woff2");font-weight:300 700;font-display:swap;font-style:normal}
+/* ---------- 1. FACES ------------------------------------------------------ */
+@font-face{font-family:"EB Garamond";src:url("fonts/garamond-var.woff2") format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+@font-face{font-family:"EB Garamond";src:url("fonts/garamond-italic-var.woff2") format("woff2");font-weight:400 700;font-style:italic;font-display:swap}
+@font-face{font-family:"Figtree";src:url("fonts/figtree-var.woff2") format("woff2");font-weight:300 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Geist Mono";src:url("fonts/geist-mono-var.woff2") format("woff2");font-weight:300 700;font-style:normal;font-display:swap}
 
 :root{
-  /* ---------- 2. INK RAMP -----------------------------------------------
-     Tinted toward blue-black, not neutral grey: this product lives at night
-     and in a terminal. Every surface is a step on one ramp, so depth comes
-     from the step and a hairline, never from a glow.                      */
-  --deep:#07080D;      /* deepest — the page behind everything */
-  --bg:#0B0D14;        /* page */
-  --card:#11141C;      /* a panel laid on the page */
-  --raised:#1A1E28;    /* an active row, an input */
-  --raised-2:#232834;  /* pressed / hover on raised */
+  /* ---------- 2. GROUND --------------------------------------------------- */
+  --cream:#FFFFEB;        /* the page */
+  --cream-2:#F8F6E0;      /* a sunken strip */
+  --card:#FFFFFF;         /* a card laid on the page */
+  --ink:#1A1A1A;          /* text, and every border */
+  --ink-2:#55544C;        /* secondary text */
+  --ink-3:#86857A;        /* meta and captions only */
+  --line:rgba(26,26,26,.14);
+  --line-soft:rgba(26,26,26,.08);
 
-  --tx:#EEF0F5;        /* primary text */
-  --tx-2:#A3A9B8;      /* secondary */
-  --tx-3:#7A8296;      /* muted — meta and captions only */
-  --line:rgba(238,240,245,.08);   /* hairline: primary at 8% */
-  --line-2:rgba(238,240,245,.14); /* emphatic hairline */
+  /* ---------- 3. THE BANDS -------------------------------------------------
+     Deep forest. Bail, surety, a green light — and dark enough that cream
+     type on it is comfortable rather than glaring.                         */
+  --forest:#123A2C;
+  --forest-2:#0C2A1F;
+  --on-forest:#F4F3DC;
+  --on-forest-2:#B8C7BC;
+  --line-forest:rgba(244,243,220,.16);
 
-  /* ---------- 3. ONE ACCENT ----------------------------------------------
-     Signal mint. An instrument readout at night, and the colour of a bond
-     coming back. It covers a few percent of any screen: the primary action,
-     the live state, and one key figure. Nothing else.                     */
-  --sig:#3DDC97;
-  --sig-dim:#1F8A5C;
-  --sig-wash:rgba(61,220,151,.10);
-  --sig-line:rgba(61,220,151,.28);
-  --on-sig:#04150D;    /* text on a mint fill — 4.5:1 and then some */
+  /* ---------- 4. ACCENTS ---------------------------------------------------
+     Mint fills the primary button, the way the reference fills its button
+     with lilac: a pale tint carrying an ink border, never a saturated slab.
+     Clay is the only other hue and it means exactly one thing — a bond was
+     kept — so it never appears decoratively.                               */
+  --mint:#C9EFD5;
+  --mint-deep:#9FDDB6;
+  --clay:#C4553D;
+  --clay-wash:#F7E4DF;
 
-  /* The only other hue in the system, and it only ever means one thing:
-     a bond was kept. Slashing is the one irreversible act here.           */
-  --slash:#FF6B6B;
-  --slash-wash:rgba(255,107,107,.10);
-  --slash-line:rgba(255,107,107,.26);
-
-  /* ---------- 4. TYPE ------------------------------------------------------ */
-  --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* ---------- 5. TYPE ------------------------------------------------------ */
+  --serif:"EB Garamond",ui-serif,Georgia,"Times New Roman",serif;
+  --sans:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  /* The wordmark is the loudest thing in the product and it is allowed to be.
-     Everything else sits on a short scale, weights 400 and 500 only.       */
-  --t-word:clamp(3.2rem,1.2rem + 9vw,11rem);
-  --t-hero:clamp(2.2rem,1.4rem + 3.2vw,4.5rem);
-  --t-h1:clamp(1.65rem,1.3rem + 1.4vw,2.25rem);
-  --t-h2:1.375rem;
-  --t-h3:1.0625rem;
-  --t-body:.9375rem;
-  --t-sm:.8125rem;
+  --t-display:clamp(2.75rem,1.6rem + 5.2vw,6rem);   /* up to 96px */
+  --t-h1:clamp(2rem,1.4rem + 2.6vw,3.25rem);
+  --t-h2:clamp(1.5rem,1.2rem + 1.2vw,2rem);
+  --t-h3:1.1875rem;
+  --t-lede:clamp(1.0625rem,1rem + .3vw,1.25rem);
+  --t-body:1rem;
+  --t-sm:.875rem;
   --t-xs:.75rem;
 
-  /* ---------- 5. SPACE (4px grid) ----------------------------------------- */
+  /* ---------- 6. SPACE (4px grid) ------------------------------------------ */
   --s1:4px;  --s2:8px;  --s3:12px; --s4:16px; --s5:20px; --s6:24px;
-  --s7:32px; --s8:40px; --s9:48px; --s10:64px; --s11:80px; --s12:128px;
+  --s7:32px; --s8:40px; --s9:48px; --s10:64px; --s11:80px; --s12:96px; --s13:128px;
 
-  /* ---------- 6. FORM ------------------------------------------------------
-     Radius by size, with nested radius maths: inner = outer − padding.     */
-  --r-xs:4px; --r-sm:6px; --r:10px; --r-lg:14px; --r-xl:18px; --r-pill:999px;
+  /* ---------- 7. FORM ------------------------------------------------------ */
+  --r-xs:6px; --r-sm:8px; --r:12px; --r-lg:20px; --r-xl:28px; --r-band:80px; --r-pill:999px;
+  --bd:1.6px solid var(--ink);
+  --shadow:0 1px 2px rgba(26,26,26,.05);
+  --shadow-lift:0 10px 34px -16px rgba(26,26,26,.28);
 
-  /* Depth on dark is a surface step plus a hairline, and at most a top
-     highlight catching light. No coloured shadow anywhere.                 */
-  --top-light:inset 0 1px 0 rgba(255,255,255,.07);
-  --drop:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
-
-  /* ---------- 7. MOTION ----------------------------------------------------
-     ONE curve for everything. No springs, no overshoot, no bounce.         */
+  /* ---------- 8. MOTION ----------------------------------------------------
+     One curve. Hover changes colour, press scales a hair. Nothing floats.  */
   --ease:cubic-bezier(.22,1,.36,1);
-  --d1:140ms;  /* hover, press */
-  --d2:200ms;  /* menus, pills */
-  --d3:420ms;  /* entrances */
+  --d1:160ms; --d2:220ms; --d3:420ms;
 
-  --maxw:1240px;
+  --maxw:1180px;
+  --measure:38rem;
 }
 
-/* ---------- 8. RESET ------------------------------------------------------ */
+/* ---------- 9. RESET ------------------------------------------------------ */
 *,*::before,*::after{box-sizing:border-box}
 *{margin:0}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:88px}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:120px}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -112,120 +101,125 @@ html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:88p
 body{
   font-family:var(--sans);
   font-size:var(--t-body);
-  line-height:1.55;
-  color:var(--tx-2);
-  background:var(--bg);
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--cream);
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
   min-height:100vh;
+  overflow-x:hidden;
 }
-img,svg{display:block;max-width:100%}
+img,svg,video{display:block;max-width:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:none;cursor:pointer;padding:0}
-a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
-:focus-visible{outline:2px solid var(--sig);outline-offset:3px;border-radius:3px}
-::selection{background:var(--sig);color:var(--on-sig)}
+a{color:inherit;text-decoration-thickness:1.5px;text-underline-offset:3px}
+:focus-visible{outline:2.5px solid var(--ink);outline-offset:3px;border-radius:4px}
+::selection{background:var(--mint);color:var(--ink)}
 
-/* ---------- 9. TYPE PRIMITIVES --------------------------------------------
-   Tracking is size-specific: display text tightens, small text does not.   */
-.word{
-  font-size:var(--t-word);font-weight:500;line-height:.86;
-  letter-spacing:-.045em;color:var(--tx);
-  text-transform:uppercase;
+/* ---------- 10. TYPE PRIMITIVES --------------------------------------------
+   The display face is for display only. It never labels a button or a field.
+
+   The italic is the signature move: one phrase inside the headline turns,
+   and it is always the phrase carrying the promise. Put it on the wrong
+   words and the sentence loses its hinge.                                  */
+.display{
+  font-family:var(--serif);font-weight:400;font-size:var(--t-display);
+  line-height:1.02;letter-spacing:-.018em;color:var(--ink);
+  text-wrap:balance;
 }
-.hero-h{font-size:var(--t-hero);font-weight:450;line-height:1.05;letter-spacing:-.03em;color:var(--tx);text-wrap:balance}
-.h1{font-size:var(--t-h1);font-weight:500;line-height:1.14;letter-spacing:-.022em;color:var(--tx);text-wrap:balance}
-.h2{font-size:var(--t-h2);font-weight:500;line-height:1.25;letter-spacing:-.018em;color:var(--tx)}
-.h3{font-size:var(--t-h3);font-weight:500;letter-spacing:-.01em;color:var(--tx)}
-.lede{font-size:1.125rem;line-height:1.6;color:var(--tx-2);max-width:36rem;text-wrap:pretty}
-.sub{font-size:var(--t-sm);line-height:1.55;color:var(--tx-3)}
+.display em{font-style:italic;font-weight:400}
+.h1{font-family:var(--serif);font-weight:400;font-size:var(--t-h1);line-height:1.08;letter-spacing:-.014em;color:var(--ink);text-wrap:balance}
+.h1 em{font-style:italic}
+.h2{font-family:var(--serif);font-weight:400;font-size:var(--t-h2);line-height:1.15;letter-spacing:-.01em;color:var(--ink)}
+.h2 em{font-style:italic}
+.h3{font-family:var(--sans);font-weight:600;font-size:var(--t-h3);letter-spacing:-.011em;color:var(--ink);line-height:1.35}
 
-/* Sentence case, not uppercase with wide tracking. The one exception in the
-   whole system is the wordmark, which is a logotype rather than a label. */
-.meta{font-family:var(--mono);font-size:var(--t-xs);color:var(--tx-3);letter-spacing:.01em}
+/* The eyebrow. The ONE place uppercase and tracking are allowed, at one
+   small size, never on a heading. */
+.eyebrow{
+  font-family:var(--sans);font-size:var(--t-xs);font-weight:600;
+  text-transform:uppercase;letter-spacing:.13em;color:var(--ink-3);
+}
+.lede{font-size:var(--t-lede);line-height:1.55;color:var(--ink-2);max-width:var(--measure)}
+.sub{font-size:var(--t-sm);line-height:1.55;color:var(--ink-3)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums slashed-zero}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums slashed-zero;letter-spacing:-.02em;color:var(--tx)}
+.num{font-family:var(--serif);font-variant-numeric:tabular-nums slashed-zero;font-weight:400;letter-spacing:-.02em;color:var(--ink)}
 
-/* ---------- 10. SURFACES --------------------------------------------------- */
-.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg)}
-.rule{border:0;border-top:1px solid var(--line);margin:var(--s6) 0}
-
-/* ---------- 11. TAG --------------------------------------------------------
-   Quiet by default. It is text with a hairline, not a glowing pill.        */
-.tag{
-  display:inline-flex;align-items:center;gap:6px;
-  font-family:var(--mono);font-size:var(--t-xs);font-weight:400;
-  padding:3px 8px;border-radius:var(--r-xs);
-  border:1px solid var(--line-2);color:var(--tx-3);
-  white-space:nowrap;line-height:1.4;
+/* ---------- 11. SECTIONS ---------------------------------------------------
+   Cream by default. A band cuts in dark with a large top radius, which is
+   what makes the page read as stacked sheets rather than stacked divs.    */
+.section{padding:var(--s13) 0}
+.band{
+  background:var(--forest);color:var(--on-forest-2);
+  border-radius:var(--r-band) var(--r-band) 0 0;
+  padding:var(--s13) 0;
 }
-.tag--live{color:var(--sig);border-color:var(--sig-line);background:var(--sig-wash)}
-.tag--slash{color:var(--slash);border-color:var(--slash-line);background:var(--slash-wash)}
-.tag--dim{opacity:.7}
-
-/* A live dot. The only looping animation in the product, and it only ever
-   sits next to something that is genuinely live. */
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--sig);flex:none;animation:breathe 2.4s var(--ease) infinite}
-@keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
-@media (prefers-reduced-motion:reduce){.live-dot{animation:none;opacity:.9}}
+.band .display,.band .h1,.band .h2,.band .h3{color:var(--on-forest)}
+.band .eyebrow{color:var(--on-forest-2)}
+.band .lede{color:var(--on-forest-2)}
+.band--close{border-radius:var(--r-band);margin-bottom:var(--s11)}
 
 /* ---------- 12. CONTROLS ----------------------------------------------------
-   Hover changes the surface step. Press scales to .98. Nothing glows.      */
+   A pale fill inside a real ink border. The border is what keeps it from
+   looking like a coloured slab, and it is the same border on every control
+   in the product, which is most of what makes the set feel like a set.   */
 .btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  height:44px;padding:0 20px;
-  font-size:var(--t-body);font-weight:500;letter-spacing:-.01em;
-  border-radius:var(--r);border:1px solid var(--line-2);
-  background:var(--raised);color:var(--tx);
-  box-shadow:var(--top-light);
-  transition:background var(--d1) var(--ease),border-color var(--d1) var(--ease),transform var(--d1) var(--ease);
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--sans);font-size:var(--t-body);font-weight:600;
+  padding:15px 24px;border-radius:var(--r);
+  border:var(--bd);background:var(--card);color:var(--ink);
+  transition:background var(--d1) var(--ease),transform var(--d1) var(--ease),color var(--d1) var(--ease);
 }
-.btn:hover{background:var(--raised-2);border-color:var(--line-2)}
-.btn:active{transform:scale(.98)}
-.btn--sig{background:var(--sig);color:var(--on-sig);border-color:transparent;font-weight:500}
-.btn--sig:hover{background:#55E8A8}
-.btn--ghost{background:transparent;border-color:var(--line-2);color:var(--tx-2);box-shadow:none}
-.btn--ghost:hover{background:var(--raised);color:var(--tx)}
-.btn--sm{height:34px;padding:0 14px;font-size:var(--t-sm)}
-.btn[disabled]{opacity:.4;pointer-events:none}
+.btn:hover{background:var(--cream-2)}
+.btn:active{transform:scale(.985)}
+.btn--primary{background:var(--mint)}
+.btn--primary:hover{background:var(--mint-deep)}
+.btn--ink{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.btn--ink:hover{background:#000}
+.btn--sm{padding:9px 16px;font-size:var(--t-sm);border-radius:var(--r-sm);border-width:1.4px}
+.btn[disabled]{opacity:.45;pointer-events:none}
 
-/* ---------- 13. THE CLOCK COLUMN -------------------------------------------
-   The signature. Ninety rules, one per day of the disclosure window. The
-   days already spent are lit; the rest are hairlines. It reads as texture
-   from across a room and as a measurement up close, which is the whole
-   point — it is the product's unit of time, not a decorative stripe.
+.band .btn{border-color:var(--on-forest);background:transparent;color:var(--on-forest)}
+.band .btn:hover{background:rgba(244,243,220,.1)}
+.band .btn--primary{background:var(--mint);color:var(--ink);border-color:var(--ink)}
+.band .btn--primary:hover{background:var(--mint-deep)}
 
-   `--left` is the share of the window still REMAINING, so a long lit run
-   means time in hand and a sliver means it is nearly up. Lighting the days
-   already spent was the first instinct and it was wrong: at 88 of 90 days
-   gone every row rendered as a solid bar, which reads as a progress meter
-   that is almost finished — the opposite of "two days left".
-
-   Drawn with repeating-linear-gradient so ninety days cost two elements
-   rather than ninety nodes.                                               */
-.clock{
-  --left:0%;
-  position:relative;
-  background-image:repeating-linear-gradient(
-    to right,
-    var(--line) 0 1px,
-    transparent 1px var(--day,12px)
-  );
+/* ---------- 13. TAG --------------------------------------------------------- */
+.tag{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--sans);font-size:var(--t-xs);font-weight:600;
+  padding:5px 11px;border-radius:var(--r-pill);
+  border:1.4px solid var(--ink);background:var(--card);color:var(--ink);
+  white-space:nowrap;line-height:1.4;
 }
-.clock::after{
-  content:"";position:absolute;inset:0;width:var(--left);
-  background-image:repeating-linear-gradient(
-    to right,
-    var(--sig-line) 0 1px,
-    transparent 1px var(--day,12px)
-  );
-  transition:width var(--d3) var(--ease);
-}
+.tag--mint{background:var(--mint)}
+.tag--clay{background:var(--clay-wash);border-color:var(--clay);color:var(--clay)}
+.band .tag{border-color:var(--on-forest);background:transparent;color:var(--on-forest)}
+.band .tag--mint{background:var(--mint);color:var(--ink);border-color:var(--ink)}
 
-/* ---------- 14. LAYOUT ------------------------------------------------------ */
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.dot--live{background:#1F9254;animation:breathe 2.4s var(--ease) infinite}
+@keyframes breathe{0%,100%{opacity:.4}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.dot--live{animation:none;opacity:.95}}
+
+/* ---------- 14. SURFACES ------------------------------------------------------ */
+.card{background:var(--card);border:var(--bd);border-radius:var(--r-lg);padding:var(--s7)}
+.band .card{background:var(--forest-2);border-color:var(--line-forest);color:var(--on-forest-2)}
+.band .card .h3,.band .card .num{color:var(--on-forest)}
+
+/* ---------- 15. LAYOUT --------------------------------------------------------- */
 .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(20px,5vw,40px)}
+.center{text-align:center}
+.center .lede{margin-inline:auto}
 .row{display:flex;align-items:center;gap:var(--s3)}
+.row--center{justify-content:center}
 .row--between{justify-content:space-between}
+.row--wrap{flex-wrap:wrap}
 .grow{flex:1 1 auto;min-width:0}
 .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+@media (max-width:720px){
+  :root{--r-band:40px}
+  .section,.band{padding:var(--s11) 0}
+}

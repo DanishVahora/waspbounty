@@ -1,160 +1,168 @@
 /* ============================================================================
-   LANDING  ·  NIGHT SHIFT
+   LANDING
    ----------------------------------------------------------------------------
-   Four sections. The old page had eight and read like homework.
-
-   The wordmark is the hero visual. Not a blob, not a 3D orb, not a grid of
-   glowing lines — the product's own name at the size it deserves, standing in
-   front of the clock column. One bright element, quiet everything else.
+   Centred editorial layout: an eyebrow, a serif headline with one italic
+   turn, a short lede, then the evidence. Cream sheets and forest bands,
+   stacked, with the band corners doing the separating instead of rules.
    ========================================================================= */
 
-/* ---------- nav ----------------------------------------------------------
-   56px, solid, hairline only once there is something behind it. */
-.nav{
-  position:sticky;top:0;z-index:50;height:56px;display:flex;align-items:center;
-  background:var(--bg);border-bottom:1px solid transparent;
-  transition:border-color var(--d2) var(--ease);
+/* ---------- announce ------------------------------------------------------
+   One line, forest, above everything. It carries news or it is not there. */
+.announce{background:var(--forest);color:var(--on-forest);font-size:var(--t-sm)}
+.announce__in{display:flex;align-items:center;justify-content:center;gap:var(--s4);
+  padding:11px 0;flex-wrap:wrap;text-align:center}
+.announce a{color:var(--mint);text-decoration:none;font-weight:600;white-space:nowrap}
+.announce a:hover{text-decoration:underline}
+
+/* ---------- nav -----------------------------------------------------------
+   A floating pill, centred, that sits ON the page rather than spanning it.
+   Solid cream, real ink border — no translucency, nothing frosted. */
+.nav{position:sticky;top:var(--s4);z-index:60;padding:var(--s4) clamp(16px,4vw,32px) 0}
+.nav__pill{
+  max-width:var(--maxw);margin-inline:auto;
+  display:flex;align-items:center;gap:var(--s6);
+  padding:10px 10px 10px var(--s6);
+  background:var(--cream);border:var(--bd);border-radius:var(--r-lg);
+  box-shadow:var(--shadow);
 }
-.nav[data-stuck="true"]{border-bottom-color:var(--line)}
-.nav__in{display:flex;align-items:center;justify-content:space-between;width:100%}
-
-.mk{display:inline-flex;align-items:center;gap:10px;text-decoration:none}
-/* A flat glyph in one solid colour. Not a gradient tile, not a glossy orb. */
-.mk__g{
-  width:14px;height:14px;flex:none;border-radius:3px;
-  background:var(--sig);
-  /* a notch, so the mark is a shape rather than a square */
-  clip-path:polygon(0 0,100% 0,100% 62%,62% 100%,0 100%);
+.mark{display:inline-flex;align-items:center;gap:10px;text-decoration:none;flex:none}
+.mark__g{
+  width:17px;height:17px;flex:none;border-radius:4px;background:var(--forest);
+  /* a notch cut from the square, so the mark is a shape and not a swatch */
+  clip-path:polygon(0 0,100% 0,100% 58%,58% 100%,0 100%);
 }
-.mk__t{font-size:1rem;font-weight:500;letter-spacing:-.02em;color:var(--tx)}
+.mark__t{font-weight:700;letter-spacing:-.021em;font-size:1.0625rem}
+.nav__links{display:flex;gap:var(--s6);margin-left:auto}
+.nav__links a{font-size:var(--t-sm);font-weight:500;color:var(--ink-2);text-decoration:none}
+.nav__links a:hover{color:var(--ink);text-decoration:underline}
 
-/* ---------- hero -----------------------------------------------------------
-   The clock column runs the full height behind the wordmark, fading out
-   before it reaches the text so nothing ever sits on a stripe. */
-.hero{position:relative;padding:var(--s12) 0 var(--s11);overflow:hidden}
-.hero__clock{
-  position:absolute;inset:0;z-index:0;
-  --day:clamp(10px,1.1vw,16px);
-  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 42%,transparent 86%);
-  mask-image:linear-gradient(to bottom,#000 0%,#000 42%,transparent 86%);
+/* ---------- hero ----------------------------------------------------------- */
+.hero{padding:var(--s12) 0 var(--s11)}
+.hero__h{margin:var(--s5) 0 var(--s6)}
+.hero__lede{margin-bottom:var(--s8)}
+.hero__cta{display:flex;gap:var(--s3);justify-content:center;flex-wrap:wrap}
+.hero__meta{display:inline-flex;align-items:center;gap:8px;margin-top:var(--s7)}
+
+/* ---------- section headings ------------------------------------------------ */
+.sec__h,.band__h{margin:var(--s5) 0 var(--s6)}
+.band__after{margin-top:var(--s6)}
+.section .lede,.band .lede{margin-inline:auto}
+
+/* ---------- the two scales ---------------------------------------------------
+   Not two identical cards: the right one is the heavy pan. It is wider, it
+   carries the clay edge, and it sits slightly lower — the shape argues the
+   point before the words do. */
+.scales{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
+  gap:var(--s5);margin:var(--s10) auto 0;max-width:860px;text-align:left;
 }
-.hero__in{position:relative;z-index:1}
+.scale{display:flex;flex-direction:column;gap:var(--s2)}
+.scale__n{font-size:clamp(2.25rem,1.6rem + 2.4vw,3.25rem);line-height:1}
+.scale--heavy{border-color:var(--clay);transform:translateY(var(--s5))}
+.scale--heavy .scale__n{color:var(--clay)}
+.band .scale--heavy{border-color:var(--clay)}
 
-.word{margin-bottom:var(--s9)}
-
-/* Asymmetric split, not a centred stack: the argument on the left, the live
-   product on the right. The right column is narrower because it is evidence
-   for the left, not a peer of it. */
-.hero__grid{
-  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);
-  gap:var(--s10);align-items:start;
+/* ---------- verdicts ----------------------------------------------------------
+   Three, and they are a ladder from best to worst outcome, so they are an
+   ordered list and they are not interchangeable. */
+.verdicts{
+  list-style:none;margin:var(--s10) 0 0;padding:0;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s5);
+  text-align:left;
 }
-.hero__say{max-width:36rem}
-.hero-h{margin-bottom:var(--s4)}
-.hero__cta{display:flex;gap:var(--s3);margin-top:var(--s7);flex-wrap:wrap}
+.verdict{display:flex;flex-direction:column;gap:var(--s3);align-items:flex-start}
+.verdict .h3{margin-top:var(--s1)}
 
-/* ---------- the docket ------------------------------------------------------
-   Real rows from Arkiv. Each one carries its own clock column, so the
-   signature reads at the scale of a single report as well as the page. */
-.docket{padding:var(--s5);background:rgba(17,20,28,.86)}
-.docket__h{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s4)}
-.docket__wait{padding:var(--s5) 0}
+.mutual{margin-top:var(--s12);padding-top:var(--s10);border-top:1.6px solid var(--line)}
+.mutual__h{margin-bottom:var(--s4)}
 
-.drow{display:block;padding:var(--s4) 0;border-top:1px solid var(--line);text-decoration:none}
-.drow:first-child{border-top:0;padding-top:0}
-.drow__top{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s4)}
-.drow__r{font-family:var(--mono);font-size:var(--t-xs);color:var(--tx-3)}
-.drow__d{font-family:var(--mono);font-size:var(--t-sm);color:var(--tx-2);font-variant-numeric:tabular-nums slashed-zero;white-space:nowrap}
-.drow--soon .drow__d{color:var(--slash)}
-.drow__t{
-  margin-top:6px;font-size:var(--t-sm);color:var(--tx);line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+/* ---------- the clock ----------------------------------------------------------
+   Ninety ticks, one per day of the disclosure window, with the days still
+   remaining inked in. A measurement, not a decoration — read it and you know
+   how long the soonest report has left. */
+.clockwrap{margin-top:var(--s10);display:flex;flex-direction:column;gap:var(--s4);align-items:center}
+
+/* Ninety ticks, one per day of the disclosure window. The days already SPENT
+   are inked, and a solid rule marks today — so a report with one day left
+   shows a nearly full bar with the marker hard against the end, which reads
+   as "almost out of time". Inking the days remaining instead left a 1% sliver
+   on an empty field, which reads as "this did not load". Same number, and
+   only one of the two is legible. */
+.clockbar{
+  --spent:0%;
+  position:relative;width:100%;max-width:760px;height:56px;
+  border:var(--bd);border-radius:var(--r);overflow:hidden;background:var(--card);
+  background-image:repeating-linear-gradient(to right,var(--line-soft) 0 1px,transparent 1px calc(100% / 90));
 }
-/* the per-report clock: 90 days across 100% of the row */
-.drow__clock{margin-top:var(--s3);height:14px;--day:4px}
-
-.hero__foot{
-  display:inline-flex;align-items:center;gap:8px;
-  margin-top:var(--s11);padding-top:var(--s5);
-  border-top:1px solid var(--line);
+.clockbar__spent{
+  position:absolute;inset:0;width:var(--spent);
+  background:var(--mint);
+  transition:width var(--d3) var(--ease);
+}
+.clockbar__now{
+  position:absolute;top:0;bottom:0;left:var(--spent);width:2px;
+  background:var(--clay);
+  transition:left var(--d3) var(--ease);
+}
+.clockbar__now::after{
+  content:"";position:absolute;top:-1px;left:-3px;width:8px;height:8px;
+  border-radius:50%;background:var(--clay);
 }
 
-/* ---------- sections -------------------------------------------------------- */
-.sec{padding:var(--s12) 0;border-top:1px solid var(--line)}
-.sec .h1{margin-bottom:var(--s9);max-width:18ch}
-
-/* ---------- figures ----------------------------------------------------------
-   A definition list, because that is what it is. Three columns divided by
-   hairlines rather than three identical cards. */
-.figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0}
-.fig{padding:0 var(--s7) 0 0;border-right:1px solid var(--line)}
-.fig:first-child{padding-left:0}
-.fig:not(:first-child){padding-left:var(--s7)}
-.fig:last-child{border-right:0}
-.fig__n{font-size:clamp(2.4rem,1.6rem + 2.6vw,3.6rem);font-weight:500;line-height:1;letter-spacing:-.04em;display:block}
-.fig__n--z{color:var(--slash)}
-.fig__d{margin-top:var(--s4);font-size:var(--t-sm);color:var(--tx-3);max-width:22ch;line-height:1.5}
-
-/* ---------- verdicts ---------------------------------------------------------
-   Rows, not cards. The tag carries the only colour; the sentence carries the
-   meaning. Nothing here needs a box around it. */
-.vs{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-.v{
-  display:grid;grid-template-columns:200px minmax(0,1fr);
-  gap:var(--s7);align-items:baseline;
-  padding:var(--s6) 0;border-bottom:1px solid var(--line);
+/* ---------- proof --------------------------------------------------------------- */
+.proofs{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--s5);margin-top:var(--s10);text-align:left;
 }
-.v__t{font-size:1.0625rem;color:var(--tx);line-height:1.5}
-.vs__note{margin-top:var(--s6);max-width:52ch}
+.proof__n{font-size:clamp(1.75rem,1.4rem + 1.2vw,2.25rem);line-height:1.1;margin:var(--s4) 0 var(--s1)}
+.proof[data-state="down"] .proof__n{color:var(--ink-3)}
 
-/* ---------- proof ------------------------------------------------------------- */
-.sec--proof{background:var(--deep)}
-.proofs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s4)}
-.proof{
-  background:var(--card);border:1px solid var(--line);
-  border-radius:var(--r-lg);padding:var(--s6);
+/* ---------- image slots -----------------------------------------------------------
+   The real image drops in at img/<name>.webp. Until it does, the slot shows a
+   labelled placeholder rather than a broken-image icon — and when the file is
+   missing the img element removes itself, so nothing renders a torn page. */
+.shot{margin:var(--s11) auto 0;max-width:960px;position:relative}
+.shot img{width:100%;height:auto;border-radius:var(--r-lg);border:var(--bd)}
+.shot__ph{display:none}
+.shot[data-empty="1"] .shot__ph{
+  display:grid;place-items:center;
+  aspect-ratio:16/9;border:1.6px dashed var(--line);
+  border-radius:var(--r-lg);background:var(--cream-2);
 }
-.proof__l{margin-bottom:var(--s5)}
-.proof__n{font-size:1.75rem;font-weight:500;line-height:1.1;margin-bottom:var(--s2)}
-.proof[data-state="up"] .proof__n{color:var(--sig)}
-.proof[data-state="down"] .proof__n{color:var(--tx-3)}
-.hero__cta2{margin-top:var(--s9)}
+.band .shot[data-empty="1"] .shot__ph{background:var(--forest-2);border-color:var(--line-forest)}
+.shot--hero{margin-top:var(--s10)}
 
-/* ---------- foot ---------------------------------------------------------------- */
-.foot{padding:var(--s7) 0;border-top:1px solid var(--line)}
-.foot__a{text-decoration:none}
-.foot__a:hover{color:var(--tx-2)}
+/* ---------- foot -------------------------------------------------------------------- */
+.foot{padding:var(--s9) 0 var(--s10);border-top:1.6px solid var(--line)}
+.foot a{text-decoration:none}
+.foot a:hover{text-decoration:underline;color:var(--ink)}
 
-/* ---------- entrance -------------------------------------------------------------
-   One fade and a 10px rise, on load only, staggered across at most six
-   elements. Nothing is scroll-triggered, so nothing below the fold can ever
-   be stuck invisible — and nothing moves while you are reading it. */
+/* ---------- entrance ------------------------------------------------------------------
+   The hero only, on load, once. Nothing is scroll-triggered: a page that
+   hides its own text until a listener fires is broken, not animated. */
 @media (prefers-reduced-motion:no-preference){
-  .lp .hero__in > *{animation:rise var(--d3) var(--ease) both}
-  .lp .hero__in > *:nth-child(1){animation-delay:40ms}
-  .lp .hero__in > *:nth-child(2){animation-delay:100ms}
-  .lp .hero__in > *:nth-child(3){animation-delay:160ms}
-  .hero__clock{animation:wipe 900ms var(--ease) both}
+  .hero .wrap > *{animation:rise var(--d3) var(--ease) both}
+  .hero .wrap > *:nth-child(1){animation-delay:30ms}
+  .hero .wrap > *:nth-child(2){animation-delay:90ms}
+  .hero .wrap > *:nth-child(3){animation-delay:150ms}
+  .hero .wrap > *:nth-child(4){animation-delay:210ms}
 }
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-/* the stripes draw themselves in from the left, once */
-@keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-/* ---------- responsive ------------------------------------------------------------- */
-@media (max-width:980px){
-  .hero__grid{grid-template-columns:minmax(0,1fr);gap:var(--s8)}
-  .docket{max-width:520px}
+/* ---------- responsive ------------------------------------------------------------------ */
+@media (max-width:900px){
+  .verdicts,.proofs{grid-template-columns:minmax(0,1fr)}
+  .scales{grid-template-columns:minmax(0,1fr)}
+  .scale--heavy{transform:none}
+  .nav__links{display:none}
 }
-@media (max-width:860px){
-  .figs{grid-template-columns:minmax(0,1fr)}
-  .fig{border-right:0;border-bottom:1px solid var(--line);padding:var(--s6) 0 !important}
-  .fig:last-child{border-bottom:0}
-  .proofs{grid-template-columns:minmax(0,1fr)}
-  .v{grid-template-columns:minmax(0,1fr);gap:var(--s3)}
-}
-@media (max-width:640px){
+@media (max-width:560px){
+  .nav{top:var(--s2);padding-top:var(--s2)}
+  .nav__pill{padding:8px 8px 8px var(--s4)}
   .hero{padding:var(--s10) 0 var(--s9)}
-  .sec{padding:var(--s10) 0}
-  .sec .h1{margin-bottom:var(--s7)}
-  .hero__foot{margin-top:var(--s9)}
 }
+
+/* On a cream section, multiply blends the photograph's ivory ground into the
+   page, so no rectangle shows even if the generated background is a shade off.
+   Not applied inside a band: multiplying onto forest would crush it. */
+.section .shot img{mix-blend-mode:multiply;filter:saturate(.96)}

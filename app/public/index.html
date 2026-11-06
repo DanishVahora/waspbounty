@@ -4,146 +4,265 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wasp Bounty — bail for bug reports</title>
-<meta name="description" content="Post a refundable bond with a security report. Get it back when you are honest — and get it back when you are simply wrong.">
-<meta name="color-scheme" content="dark">
+<meta name="description" content="A refundable bond on open source security reports. Get it back when your report is real, and get it back in full when you were simply wrong.">
+<meta name="color-scheme" content="light">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="preload" href="fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/geist-mono-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/garamond-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="landing.css">
 </head>
-<body class="lp">
+<body>
 
-<header class="nav" id="nav">
-  <div class="wrap nav__in">
-    <a class="mk" href="/" aria-label="Wasp Bounty">
-      <span class="mk__g" aria-hidden="true"></span>
-      <span class="mk__t">Wasp Bounty</span>
+<!-- ===================== ANNOUNCE ===================== -->
+<div class="announce">
+  <div class="wrap announce__in">
+    <span>Built at ETHGlobal Mumbai, live on Sepolia, Arkiv and 0G.</span>
+    <a href="#proof">See it running <span aria-hidden="true">&rsaquo;</span></a>
+  </div>
+</div>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav">
+  <div class="nav__pill">
+    <a class="mark" href="/" aria-label="Wasp Bounty, home">
+      <span class="mark__g" aria-hidden="true"></span>
+      <span class="mark__t">Wasp Bounty</span>
     </a>
-    <a class="btn btn--sig btn--sm" href="/app">Open the app</a>
+    <nav class="nav__links" aria-label="Sections">
+      <a href="#problem">The problem</a>
+      <a href="#how">How it works</a>
+      <a href="#proof">Live</a>
+    </nav>
+    <a class="btn btn--primary btn--sm" href="/app">Open the app</a>
   </div>
 </header>
 
 <main>
 
-<!-- ======================= HERO ======================= -->
-<section class="hero">
-  <!-- The clock column. Ninety rules, one per day of the disclosure window.
-       Days already spent are lit. This is the signature, and it is a
-       measurement rather than a backdrop. -->
-  <div class="hero__clock clock" id="heroClock" aria-hidden="true"></div>
+<!-- ===================== HERO ===================== -->
+<section class="hero center">
+  <div class="wrap">
+    <p class="eyebrow">A refundable bond on security reports</p>
 
-  <div class="wrap hero__in">
-    <h1 class="word">Wasp<br>Bounty</h1>
+    <h1 class="display hero__h">
+      Report anything.<br><em>Keep your word, keep your money.</em>
+    </h1>
 
-    <div class="hero__grid">
-      <div class="hero__say">
-        <p class="hero-h">Bail for bug reports.</p>
-        <p class="lede">
-          Post a refundable bond with a security report. Get it back when you are
-          right — and get it back when you are simply wrong.
-        </p>
-        <div class="hero__cta">
-          <a class="btn btn--sig" href="/app">Open the app</a>
-          <a class="btn btn--ghost" href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">Source</a>
-        </div>
-      </div>
+    <p class="lede hero__lede">
+      Post a refundable deposit with a vulnerability report. You get it back
+      when the report is real — and back in full when you were simply wrong.
+    </p>
 
-      <!-- The bright element: the real docket, read from Arkiv on load. Not a
-           mockup of a product — the product. Each row carries its own clock
-           column, so the signature repeats at the scale of one report. -->
-      <aside class="docket panel" id="docket" aria-label="Reports on the clock">
-        <header class="docket__h">
-          <span class="meta">On the clock</span>
-          <span class="tag tag--live"><span class="live-dot" aria-hidden="true"></span>Arkiv</span>
-        </header>
-        <div id="docketRows">
-          <p class="sub docket__wait">Reading the disclosure clock…</p>
-        </div>
-      </aside>
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="/app">Open the app</a>
+      <a class="btn" href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">Read the source</a>
     </div>
 
-    <p class="hero__foot meta" id="heroFoot">
-      <span class="live-dot" aria-hidden="true"></span>
-      <span id="heroStat">Reading Sepolia and Arkiv…</span>
+    <p class="hero__meta sub" id="heroMeta">
+      <span class="dot dot--live" aria-hidden="true"></span>
+      <span id="heroStat">Reading the networks…</span>
     </p>
+
+    <figure class="shot shot--hero" data-img="hero">
+      <img src="img/hero.webp" alt="" onerror="this.closest('.shot').dataset.empty='1';this.remove()">
+      <figcaption class="shot__ph"><span class="eyebrow">Image 1 — Hero</span></figcaption>
+    </figure>
   </div>
 </section>
 
-<!-- ======================= PROBLEM ======================= -->
-<section class="sec" id="why">
-  <div class="wrap">
-    <h2 class="h1">Writing a report became free. Reading one did not.</h2>
-    <dl class="figs">
-      <div class="fig">
-        <dt class="num fig__n">8&times;</dt>
-        <dd class="fig__d">more reports in a week, before curl closed its bounty</dd>
+<!-- ===================== PROBLEM (BAND) ===================== -->
+<section class="band" id="problem">
+  <div class="wrap center">
+    <p class="eyebrow">The asymmetry</p>
+    <h2 class="display band__h">
+      Writing a report became free.<br><em>Reading one did not.</em>
+    </h2>
+    <p class="lede">
+      In January 2026 curl ended its bug bounty after an eightfold surge in
+      AI-written reports in a single week. The programme had paid out around
+      $90,000 since 2019. It did not fail — it was buried.
+    </p>
+
+    <div class="scales">
+      <div class="card scale">
+        <p class="eyebrow">To send a report</p>
+        <p class="num scale__n">Free</p>
+        <p class="sub">No account, no cost, no limit. A model can write a convincing one in seconds.</p>
       </div>
-      <div class="fig">
-        <dt class="num fig__n">2&ndash;8h</dt>
-        <dd class="fig__d">a human spends checking one of them</dd>
+      <div class="card scale scale--heavy">
+        <p class="eyebrow">To check one</p>
+        <p class="num scale__n">2&ndash;8 hours</p>
+        <p class="sub">A maintainer reads the code, reproduces it, and writes back. OpenSSF's own estimate.</p>
       </div>
-      <div class="fig">
-        <dt class="num fig__n fig__n--z">0</dt>
-        <dd class="fig__d">what it costs to send one</dd>
-      </div>
-    </dl>
+    </div>
+
+    <p class="band__after lede">
+      Daniel Stenberg had already required AI disclosure, and already banned
+      the reporters sending slop. Neither worked. Better detection cannot win,
+      because better slop simply raises the cost of checking — so price the
+      asymmetry instead.
+    </p>
+
+    <figure class="shot" data-img="asymmetry">
+      <img src="img/asymmetry.webp" alt="" onerror="this.closest('.shot').dataset.empty='1';this.remove()">
+      <figcaption class="shot__ph"><span class="eyebrow">Image 2 — The asymmetry</span></figcaption>
+    </figure>
   </div>
 </section>
 
-<!-- ======================= VERDICTS ======================= -->
-<section class="sec" id="how">
+<!-- ===================== HOW ===================== -->
+<section class="section center" id="how">
   <div class="wrap">
-    <h2 class="h1">Three verdicts.</h2>
-    <ol class="vs">
-      <li class="v">
-        <span class="tag tag--live">Valid</span>
-        <p class="v__t">Bond returned, and a tier that follows you to the next project.</p>
+    <p class="eyebrow">How it works</p>
+    <h2 class="display sec__h">
+      Three verdicts, and the middle one<br><em>is the whole design.</em>
+    </h2>
+    <p class="lede">
+      The question is not “were you right?”. Most honest security reports are
+      wrong, and a system that punishes being wrong drives out the people it
+      needs most.
+    </p>
+
+    <ol class="verdicts">
+      <li class="card verdict">
+        <span class="tag tag--mint">Valid</span>
+        <h3 class="h3">Bond returned, plus a tier</h3>
+        <p class="sub">The report was real. You are refunded, and you earn a reputation tier that lives on your own ENS name — so the next project already knows you.</p>
       </li>
-      <li class="v">
+      <li class="card verdict">
         <span class="tag">Wrong, in good faith</span>
-        <p class="v__t">Bond returned in full. Being wrong is not slop.</p>
+        <h3 class="h3">Bond returned in full</h3>
+        <p class="sub">You tried, and it did not hold up. That costs you nothing at all. Being wrong is not slop.</p>
       </li>
-      <li class="v">
-        <span class="tag tag--slash">Fabricated</span>
-        <p class="v__t">Bond kept — paid to reviewers, never to the person who judged it.</p>
+      <li class="card verdict">
+        <span class="tag tag--clay">Fabricated</span>
+        <h3 class="h3">Bond kept</h3>
+        <p class="sub">It cited code that does not exist. The deposit goes to a pool that pays reviewers — never to the person who called it fabricated.</p>
       </li>
     </ol>
-    <p class="sub vs__note">The maintainer posts a bond too. Miss the window and the reporter is paid automatically.</p>
+
+    <div class="mutual">
+      <p class="h2 mutual__h">The maintainer posts a bond too.</p>
+      <p class="lede">
+        A deposit only researchers pay is not bail, it is a toll. The project
+        stakes one against its own promise to answer, and if the window closes
+        in silence, anyone at all can claim it — the reporter is paid
+        automatically, without having to ask.
+      </p>
+    </div>
   </div>
 </section>
 
-<!-- ======================= PROOF ======================= -->
-<section class="sec sec--proof" id="live">
+<!-- ===================== ENCLAVE (BAND) ===================== -->
+<section class="band" id="enclave">
+  <div class="wrap center">
+    <p class="eyebrow">The hard question</p>
+    <h2 class="display band__h">
+      So who decides<br><em>what counts as slop?</em>
+    </h2>
+    <p class="lede">
+      Not us — nobody stakes a deposit on a referee who wrote the rules. And
+      not the maintainer alone, who collects the forfeit. The first read comes
+      from a model running inside a sealed chip, and we show you the request id
+      and the provider address that answered, every single time.
+    </p>
+    <p class="lede band__after">
+      <strong>The chip never sentences anyone.</strong> It offers a first
+      opinion. A human signs the outcome and can overrule it in one click.
+    </p>
+
+    <figure class="shot" data-img="enclave">
+      <img src="img/enclave.webp" alt="" onerror="this.closest('.shot').dataset.empty='1';this.remove()">
+      <figcaption class="shot__ph"><span class="eyebrow">Image 3 — The sealed verdict</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================== CLOCK ===================== -->
+<section class="section center" id="clock">
   <div class="wrap">
-    <h2 class="h1">Running now.</h2>
+    <p class="eyebrow">The disclosure clock</p>
+    <h2 class="display sec__h">
+      Letting a deadline die is silent.<br><em>Buying more time is not.</em>
+    </h2>
+    <p class="lede">
+      Every report carries a 90-day disclosure deadline that expires by itself —
+      nobody deletes it, the network simply stops answering. Extending one is a
+      signed, public act that is announced the moment it happens.
+    </p>
+
+    <div class="clockwrap">
+      <div class="clockbar" id="clockbar" aria-hidden="true">
+        <div class="clockbar__spent"></div>
+        <div class="clockbar__now"></div>
+      </div>
+      <p class="sub" id="clockNote">Reading open disclosures…</p>
+    </div>
+
+    <figure class="shot" data-img="clock">
+      <img src="img/clock.webp" alt="" onerror="this.closest('.shot').dataset.empty='1';this.remove()">
+      <figcaption class="shot__ph"><span class="eyebrow">Image 4 — The clock</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================== PROOF ===================== -->
+<section class="section center" id="proof">
+  <div class="wrap">
+    <p class="eyebrow">Live proof</p>
+    <h2 class="display sec__h">Everything below is read<br><em>when this page loads.</em></h2>
+    <p class="lede">
+      If a figure is blank, that backend is genuinely down. We would rather show
+      you that than a screenshot of better weather.
+    </p>
+
     <div class="proofs" id="proofs">
-      <article class="proof" data-k="chain">
-        <p class="meta proof__l">Contract · Sepolia</p>
+      <article class="card proof" data-k="chain">
+        <p class="eyebrow">Contract · Sepolia</p>
         <p class="num proof__n" data-n>—</p>
         <p class="sub" data-t>reading</p>
       </article>
-      <article class="proof" data-k="arkiv">
-        <p class="meta proof__l">Disclosure clock · Arkiv</p>
+      <article class="card proof" data-k="arkiv">
+        <p class="eyebrow">Disclosure clock · Arkiv</p>
         <p class="num proof__n" data-n>—</p>
         <p class="sub" data-t>reading</p>
       </article>
-      <article class="proof" data-k="zerog">
-        <p class="meta proof__l">Verdict · sealed enclave</p>
+      <article class="card proof" data-k="zerog">
+        <p class="eyebrow">Verdict · sealed enclave</p>
         <p class="num proof__n" data-n>—</p>
         <p class="sub" data-t>reading</p>
       </article>
     </div>
-    <a class="btn btn--sig hero__cta2" href="/app">Open the app</a>
+  </div>
+</section>
+
+<!-- ===================== CLOSE ===================== -->
+<section class="wrap">
+  <div class="band band--close center">
+    <div class="wrap">
+      <h2 class="display">
+        curl did not close its door<br><em>because it wanted to.</em>
+      </h2>
+      <p class="lede">
+        It closed because checking got more expensive than the programme was
+        worth. We made checking cheap again — not by guessing who is lying, but
+        by letting strangers vouch for themselves, refundably.
+      </p>
+      <div class="hero__cta row--center">
+        <a class="btn btn--primary" href="/app">Open the app</a>
+        <a class="btn" href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">Read the source</a>
+      </div>
+    </div>
   </div>
 </section>
 
 </main>
 
 <footer class="foot">
-  <div class="wrap row row--between">
-    <p class="meta">ETHGlobal Mumbai 2026 · MIT</p>
-    <a class="meta foot__a" href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">Source</a>
+  <div class="wrap row row--between row--wrap">
+    <p class="sub">ETHGlobal Mumbai 2026 · MIT licensed</p>
+    <a class="sub" href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">github.com/DanishVahora/waspbounty</a>
   </div>
 </footer>
 
