@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The brand mark: amber tile, ink border, the hard offset press that is
+       this system's elevation. Same shape as the nav mark, so the tab and the
+       page agree. -->
+  <rect x="4" y="4" width="23" height="23" rx="4" fill="#121212"/>
+  <rect x="2" y="2" width="23" height="23" rx="4" fill="#F59E0B" stroke="#121212" stroke-width="2"/>
+  <text x="13.5" y="19.5" font-family="ui-monospace,SFMono-Regular,Menlo,monospace"
+        font-size="13" font-weight="700" fill="#121212" text-anchor="middle">W</text>
+</svg>

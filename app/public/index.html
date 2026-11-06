@@ -3,264 +3,311 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>WaspBounty — a bail system for open source security reports</title>
-<meta name="description" content="Post a refundable bond with a security report and get a guaranteed human answer in 72 hours. Behave and you get it all back, plus a tier that travels to the next project.">
+<title>Wasp Bounty — bail for bug reports</title>
+<meta name="description" content="Open source bug bounties are drowning in AI-generated reports. Wasp Bounty prices the asymmetry: a refundable bond on a report, returned in full when you are honest — and the maintainer posts one too.">
 <meta name="color-scheme" content="light">
-<meta name="theme-color" content="#F7F3EA">
-<meta property="og:type" content="website">
-<meta property="og:title" content="WaspBounty — we gave open source a bail system">
-<meta property="og:description" content="Reporting is always free. The bond only ever buys priority, never permission.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23F59E0B'/%3E%3Ctext x='16' y='23' font-family='ui-monospace,monospace' font-size='19' font-weight='700' text-anchor='middle' fill='%23121212'%3EZ%3C/text%3E%3C/svg%3E">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/newsreader-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="theme.css">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="landing.css">
 </head>
-<body>
+<body class="lp">
 
-<header class="top">
-  <div class="top__in">
-    <a class="brand" href="#" aria-label="WaspBounty home">
-      <span class="brand__z" aria-hidden="true">W</span>
-      <span class="brand__n">WaspBounty</span>
-      <span class="brand__d" aria-hidden="true">bail for bug reports</span>
+<!-- ============================ NAV ============================ -->
+<header class="nav" id="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="/" aria-label="Wasp Bounty, home">
+      <span class="brand__mk" aria-hidden="true">W</span>
+      <span class="brand__tx">WaspBounty</span>
+      <span class="brand__sub">bail for bug reports</span>
     </a>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-view="report" aria-selected="true">Report</button>
-      <button class="tab" role="tab" data-view="desk" aria-selected="false">Triage desk</button>
-      <button class="tab" role="tab" data-view="lanes" aria-selected="false">Projects</button>
-      <button class="tab" role="tab" data-view="board" aria-selected="false">Disclosure board</button>
-    </div>
+    <nav class="nav__links" aria-label="Sections">
+      <a href="#problem">The problem</a>
+      <a href="#how">How it works</a>
+      <a href="#live">Live proof</a>
+    </nav>
+    <a class="btn btn--primary btn--sm" href="/app">Open the app</a>
   </div>
 </header>
 
-<main>
+<main id="main">
 
-<!-- ============================ REPORT ============================ -->
-<section class="page view" id="view-report">
-  <div class="head">
-    <h1 class="title">Found something? The door is open.</h1>
-    <p class="sub">
-      Reporting is free, always, with no wallet and no questions. If you want a
-      guaranteed human answer within 72 hours, you can post a refundable bond —
-      and the maintainer posts one back.
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="wrap hero__in">
+
+    <p class="label hero__case">Case no. WB-2026 · ETHGlobal Mumbai</p>
+
+    <h1 class="display hero__h">
+      Open source stopped<br>reading its mail.
+    </h1>
+
+    <p class="lede hero__lede">
+      In January 2026 <strong>curl ended its bug bounty</strong> after an eightfold
+      surge in AI-written reports in a single week. Not because the programme
+      failed — it had paid out around $90,000. Because a human still needs
+      <strong>two to eight hours</strong> to check a report that costs nothing to send.
+    </p>
+
+    <!-- The turn. This is the whole idea, and it gets its own air. -->
+    <figure class="turn">
+      <blockquote class="turn__q">
+        Courts solved this centuries ago. You don’t vet a stranger
+        at the door — you <em>take bail</em>.
+      </blockquote>
+      <figcaption class="turn__c">
+        Take surety. Return it on good behaviour. Let the record follow them out.
+      </figcaption>
+    </figure>
+
+    <div class="hero__cta">
+      <a class="btn btn--primary" href="/app">Open the app</a>
+      <a class="btn btn--ghost" href="#how">How bail works here</a>
+    </div>
+
+    <p class="hero__note mono">
+      Live on Sepolia and Arkiv right now. Nothing on this page is a mockup.
     </p>
   </div>
+</section>
 
-  <div class="card">
-    <div class="field">
-      <label class="field__l" for="repo">Project</label>
-      <input class="input" id="repo" value="curl/curl" spellcheck="false"
-             placeholder="owner/repo, or paste a GitHub URL" autocomplete="off">
-      <p class="field__h" id="repoHint">Any public GitHub project. We read its issue tracker, not its promises.</p>
-    </div>
+<!-- ============================ THE ASYMMETRY ============================ -->
+<section class="band" id="problem">
+  <div class="wrap">
+    <p class="label band__l">The asymmetry</p>
+    <h2 class="h1 band__h">Producing a report became free. Checking one did not.</h2>
 
-    <!-- What this project's OWN record says. Measured live from GitHub. -->
-    <div class="gh" id="ghPanel" hidden>
-      <div class="gh__row">
-        <a class="gh__slug" id="ghSlug" href="#" target="_blank" rel="noopener noreferrer"></a>
-        <span class="gh__stars" id="ghStars"></span>
+    <div class="figs">
+      <div class="fig">
+        <b class="fig__n num">8×</b>
+        <span class="fig__t">surge in reports, one week</span>
+        <span class="fig__s">curl, January 2026</span>
       </div>
-      <div class="gh__grid">
-        <div class="gh__m"><b id="ghOpen">—</b><span>open reports</span></div>
-        <div class="gh__m"><b id="ghSilent">—</b><span>never answered</span></div>
-        <div class="gh__m"><b id="ghWorst">—</b><span>longest wait</span></div>
-        <div class="gh__m gh__m--bond"><b id="ghBond">—</b><span>response bond</span></div>
+      <div class="fig">
+        <b class="fig__n num">2–8<i>h</i></b>
+        <span class="fig__t">human time per report</span>
+        <span class="fig__s">OpenSSF triage estimate</span>
       </div>
-      <p class="gh__verdict" id="ghVerdict"></p>
-      <ul class="gh__ev" id="ghEvidence"></ul>
-      <p class="gh__id"><span id="ghLaneId"></span><em id="ghLaneDeriv"></em></p>
-    </div>
-
-    <div class="row2">
-      <div class="field">
-        <label class="field__l" for="sev">How bad do you think it is?</label>
-        <select class="select" id="sev">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high" selected>High</option>
-          <option value="critical">Critical</option>
-        </select>
-        <p class="field__h">An honest guess is fine. Getting this wrong costs you nothing.</p>
-      </div>
-      <div class="field">
-        <label class="field__l" for="issue">Issue number</label>
-        <input class="input" id="issue" value="9114" inputmode="numeric">
+      <div class="fig fig--zero">
+        <b class="fig__n num">0</b>
+        <span class="fig__t">cost to send one</span>
+        <span class="fig__s">before any of this</span>
       </div>
     </div>
 
-    <div class="field">
-      <label class="field__l" for="title">One line: what is it?</label>
-      <input class="input" id="title" value="Heap overflow in ftp_parse_resp() when PASV reply exceeds 512 bytes" spellcheck="false">
-    </div>
-
-    <div class="field">
-      <label class="field__l" for="body">What did you find?</label>
-      <textarea class="textarea" id="body" spellcheck="false">A crafted PASV response of 600 bytes causes an unchecked memcpy into a fixed 512-byte buffer in lib/ftp.c. Reachable by any client following a redirect to an attacker-controlled FTP server.</textarea>
-      <p class="field__h">
-        This is sealed before it is recorded. Everything on Arkiv is public, so
-        only an encrypted blob and a checksum ever leave your machine.
-      </p>
-    </div>
+    <p class="band__p">
+      Daniel Stenberg had already required AI disclosure. He had already banned the
+      reporters sending slop. Neither worked, so he closed the door — and every
+      honest researcher was shut out with the bots.
+      <strong>Detection was never going to win:</strong> better slop simply raises the
+      cost of checking. So stop detecting, and price the asymmetry instead.
+    </p>
   </div>
+</section>
 
-  <div class="card">
-    <div class="card__h"><span class="card__t">Pick a lane</span></div>
+<!-- ============================ HOW IT WORKS ============================ -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <p class="label">How bail works here</p>
+    <h2 class="h1 sec__h">Three verdicts. The middle one is the whole design.</h2>
+    <p class="lede sec__lede">
+      A reporter posts a refundable bond with a report. What happens next depends
+      on one question — and it is <em>not</em> “were you right?”
+    </p>
 
-    <!-- The bond is never a number this page chose. It is bondFor() on Sepolia,
-         which reaches into the live ENSv2 registry to decide whether a tier on
-         the reporter's name waives it. Paste any address and watch it change. -->
-    <div class="field">
-      <label class="field__l" for="reporter">Your address <span class="field__opt">— optional, only to quote your bond</span></label>
-      <input class="input" id="reporter" spellcheck="false" autocomplete="off"
-             placeholder="0x… — leave empty to see the default bond">
-      <p class="field__h" id="reporterHint">We read your tier from ENS. We never ask you to sign anything here.</p>
-    </div>
+    <ol class="verdicts">
+      <li class="verdict verdict--valid">
+        <span class="stamp stamp--done stamp--cocked">Valid</span>
+        <h3 class="h3">Bond back, in full — and a tier you keep</h3>
+        <p>The report was real. You are refunded, and you earn a reputation tier
+          that lives on <em>your</em> ENS name, so the next project already knows you.</p>
+      </li>
+      <li class="verdict verdict--good">
+        <span class="stamp stamp--info stamp--cocked">Good faith</span>
+        <h3 class="h3">Bond back, in full</h3>
+        <p><strong>Being wrong is not slop.</strong> Most honest security reports are
+          wrong. A system that punishes being wrong drives out exactly the people
+          it needs, so being wrong costs you nothing at all.</p>
+      </li>
+      <li class="verdict verdict--slop">
+        <span class="stamp stamp--block stamp--cocked">Fabricated</span>
+        <h3 class="h3">Bond slashed — to a pool the maintainer cannot touch</h3>
+        <p>It cited code that does not exist. The bond goes to a triage pool that
+          pays reviewers. The person who called it slop never receives a rupee of
+          it, so nobody profits from a guilty verdict.</p>
+      </li>
+    </ol>
 
-    <div class="bondq" id="bondPanel" hidden>
-      <div class="bondq__main">
-        <b class="bondq__n" id="bondAmount">—</b>
-        <span class="bondq__u" id="bondUnit">to post</span>
-      </div>
-      <div class="bondq__why">
-        <p class="bondq__r" id="bondReason">—</p>
-        <p class="bondq__src">
-          <code>bondFor()</code> on Sepolia ·
-          <a id="bondLink" href="#" target="_blank" rel="noopener noreferrer">read the contract</a>
+    <hr class="perf">
+
+    <!-- The fairness half. Without this the whole thing is a toll on researchers. -->
+    <div class="mutual">
+      <div class="mutual__tx">
+        <p class="label">And the door swings both ways</p>
+        <h3 class="h2">The maintainer posts a bond too.</h3>
+        <p>
+          A deposit only researchers pay is not bail, it is a toll. So the project
+          posts one against its own promise to answer. Miss the window and
+          <strong>anyone at all</strong> can call it — the reporter is paid
+          automatically, without having to ask.
+        </p>
+        <p class="aside">
+          Both sides are bound, or neither side is honest.
         </p>
       </div>
-    </div>
-
-    <div class="lanes">
-      <button class="lane lane--free" data-lane="free" aria-pressed="false">
-        <span class="lane__t">Free lane</span>
-        <span class="lane__d">No wallet, no bond. The enclave reads everything here and escalates anything that looks real.</span>
-        <span class="lane__p">always open</span>
-      </button>
-      <button class="lane" data-lane="priority" aria-pressed="true">
-        <span class="lane__t">Priority lane</span>
-        <span class="lane__d">Post a refundable bond. A human answers within the window, or the maintainer's bond pays out to you.</span>
-        <span class="lane__p" id="lanePrice">refundable · reading chain…</span>
-      </button>
-    </div>
-
-    <div class="humanline">
-      <span aria-hidden="true">⚖</span>
-      <span><b>The bond never buys permission — only priority.</b> You get it back
-      in full if your report is real, and in full if it is simply wrong. It is
-      kept only when a report is fabricated.</span>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn--primary" id="submit">Submit report</button>
-      <span class="note" id="submitNote"></span>
-    </div>
-  </div>
-</section>
-
-<!-- ============================ DESK ============================ -->
-<section class="page page--wide view" id="view-desk" hidden>
-  <div class="head">
-    <h1 class="title">Triage desk</h1>
-    <p class="sub">
-      What came in overnight, worst first. The enclave has already read each one
-      and offered an opinion — you decide what it means.
-    </p>
-  </div>
-
-  <div class="card__h" style="margin-bottom:var(--s4)">
-    <span class="pill" id="deskStatus">checking backends…</span>
-    <span class="pill" id="modelPill" hidden></span>
-    <a class="pill" id="chainPill" hidden target="_blank" rel="noopener noreferrer"></a>
-  </div>
-
-  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6);align-items:start" id="deskGrid">
-    <div>
-      <div class="queue" id="queue"></div>
-    </div>
-    <div id="detail"></div>
-  </div>
-</section>
-
-<!-- ============================ LANES ============================ -->
-<section class="page page--wide view" id="view-lanes" hidden>
-  <div class="head">
-    <h1 class="title">What a project's own issue tracker admits</h1>
-    <p class="sub">
-      Every row is a real GitHub project. The bond is not a number we chose — it
-      is priced from how many reports that project has already left waiting
-      longer than the window it promises. Worst first, which is the opposite of
-      how bounty platforms sort.
-    </p>
-  </div>
-
-  <div class="card__h" style="margin-bottom:var(--s4)">
-    <span class="pill" id="lanesSource">reading Arkiv…</span>
-  </div>
-
-  <div class="card">
-    <div class="card__h">
-      <span class="card__t">Add a project</span>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label class="field__l" for="laneSlug">GitHub project</label>
-        <input class="input" id="laneSlug" placeholder="owner/repo" spellcheck="false" autocomplete="off">
-      </div>
-      <div class="field">
-        <label class="field__l" for="laneWindow">Window they want to promise</label>
-        <select class="select" id="laneWindow">
-          <option value="1">1 day</option>
-          <option value="7" selected>7 days</option>
-          <option value="30">30 days</option>
-          <option value="90">90 days</option>
-        </select>
-        <p class="field__h">A shorter promise on a slow project costs more. That is the whole mechanism.</p>
+      <div class="mutual__fig" aria-hidden="true">
+        <div class="scale">
+          <div class="scale__side">
+            <span class="label">Reporter</span>
+            <span class="scale__v num">bond</span>
+          </div>
+          <div class="scale__pin"></div>
+          <div class="scale__side">
+            <span class="label">Maintainer</span>
+            <span class="scale__v num">bond</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="actions">
-      <button class="btn btn--primary" id="laneMeasure">Measure it</button>
-      <span class="note" id="laneNote"></span>
-    </div>
   </div>
-
-  <div id="lanesList"></div>
 </section>
 
-<!-- ============================ BOARD ============================ -->
-<section class="page page--wide view" id="view-board" hidden>
-  <div class="head">
-    <h1 class="title">The clock nobody can quietly extend</h1>
-    <p class="sub">
-      Every report carries a 90-day disclosure deadline. When it passes, the
-      record simply stops existing — nobody deletes it, the network stops
-      answering. And if anyone buys more time, that extension is announced here.
+<!-- ============================ WHO DECIDES ============================ -->
+<section class="band band--ink">
+  <div class="wrap narrow">
+    <p class="label band__l">The question that kills the idea</p>
+    <h2 class="h1 band__h">“So who decides what counts as slop?”</h2>
+    <p class="band__p">
+      Not us — nobody would stake a rupee on a referee who wrote the rules. And not
+      the maintainer alone, who collects the fine. The first read comes from a model
+      running <strong>inside a sealed chip</strong>, and we show you the request id and
+      the provider address that answered, every time.
+    </p>
+    <p class="band__p">
+      <strong>The chip never sentences anyone.</strong> It gives a first opinion. A human
+      signs the outcome, and can overrule it in one click.
     </p>
   </div>
+</section>
 
-  <div class="stats" id="stats"></div>
+<!-- ============================ THE THREE DOORS ============================ -->
+<section class="sec" id="doors">
+  <div class="wrap">
+    <p class="label">Where do you come in?</p>
+    <h2 class="h1 sec__h">Three doors. Pick the one that sounds like you.</h2>
 
-  <div class="card">
-    <div class="card__h">
-      <span class="card__t">Deadline extensions</span>
-      <span class="pill" id="extPill">live</span>
+    <div class="doors">
+      <a class="door" href="/app#report">
+        <span class="door__n label">01</span>
+        <h3 class="h2 door__h">I found something.</h3>
+        <p class="door__p">
+          Reporting is free and always will be — no wallet, no account. Post a bond
+          only if you want a guaranteed human answer inside the window.
+        </p>
+        <span class="door__go">Write a report <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="door" href="/app#desk">
+        <span class="door__n label">02</span>
+        <h3 class="h2 door__h">I maintain a project.</h3>
+        <p class="door__p">
+          Claim your lane with one file on your default branch. Your response bond is
+          priced from your own public record, not from an opinion about you.
+        </p>
+        <span class="door__go">Open the triage desk <span aria-hidden="true">→</span></span>
+      </a>
+
+      <a class="door" href="/app#board">
+        <span class="door__n label">03</span>
+        <h3 class="h2 door__h">I’m just watching.</h3>
+        <p class="door__p">
+          Every report carries a 90-day disclosure clock that expires by itself.
+          Letting it lapse is silent; buying more time is a public, signed act.
+        </p>
+        <span class="door__go">See the clock <span aria-hidden="true">→</span></span>
+      </a>
     </div>
-    <div id="extensions"></div>
-    <p class="note" style="margin-top:var(--s4)">
-      Letting a deadline die is silent. Keeping it alive is a public, signed act
-      that Arkiv announces. That inverts who has to explain themselves — and it
-      is the one thing no ordinary database can do.
-    </p>
   </div>
+</section>
 
-  <div class="card">
-    <div class="card__h"><span class="card__t">Running out of clock</span></div>
-    <div class="queue" id="boardQueue"></div>
+<!-- ============================ LIVE PROOF ============================ -->
+<section class="sec sec--live" id="live">
+  <div class="wrap">
+    <p class="label">Live proof</p>
+    <h2 class="h1 sec__h">Everything below is read from a live network when this page loads.</h2>
+    <p class="lede sec__lede">
+      If a number here is blank, the thing behind it is genuinely down — we would
+      rather show you that than a screenshot of better weather.
+    </p>
+
+    <div class="proofs" id="proofs">
+      <article class="proof" data-k="chain">
+        <header class="proof__h">
+          <span class="label">Contract · Sepolia</span>
+          <span class="stamp stamp--todo" data-pill>checking…</span>
+        </header>
+        <b class="proof__n num" data-n>—</b>
+        <span class="proof__t" data-t>reading the chain</span>
+        <a class="proof__a mono" data-a target="_blank" rel="noopener noreferrer" hidden>view on Etherscan →</a>
+      </article>
+
+      <article class="proof" data-k="arkiv">
+        <header class="proof__h">
+          <span class="label">Disclosure clock · Arkiv</span>
+          <span class="stamp stamp--todo" data-pill>checking…</span>
+        </header>
+        <b class="proof__n num" data-n>—</b>
+        <span class="proof__t" data-t>reading Rabdi</span>
+        <span class="proof__a mono" data-a hidden></span>
+      </article>
+
+      <article class="proof" data-k="zerog">
+        <header class="proof__h">
+          <span class="label">The sealed chip · 0G</span>
+          <span class="stamp stamp--todo" data-pill>checking…</span>
+        </header>
+        <b class="proof__n num" data-n>—</b>
+        <span class="proof__t" data-t>reading the enclave</span>
+        <span class="proof__a mono" data-a hidden></span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CLOSE ============================ -->
+<section class="close">
+  <div class="wrap narrow">
+    <p class="close__q display">
+      curl didn’t close its door because it wanted to.
+    </p>
+    <p class="close__a">
+      It closed because checking got more expensive than the programme was worth.
+      We made checking cheap again — not by guessing who is lying, but by letting
+      strangers vouch for themselves, refundably.
+      <strong>That is a door that opens again.</strong>
+    </p>
+    <div class="close__cta">
+      <a class="btn btn--primary" href="/app">Open the app</a>
+      <a class="btn btn--ghost" href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">Read the source</a>
+    </div>
   </div>
 </section>
 
 </main>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="app.js" type="module"></script>
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p class="mono foot__c">Built at ETHGlobal Mumbai, 2026 · MIT</p>
+    <nav class="foot__l" aria-label="Elsewhere">
+      <a href="https://github.com/DanishVahora/waspbounty" target="_blank" rel="noopener noreferrer">Source</a>
+      <a href="/app">App</a>
+      <a href="#main">Back to top</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="landing.js" type="module"></script>
 </body>
 </html>

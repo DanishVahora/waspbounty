@@ -297,7 +297,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* static */
-    let rel = url.pathname === "/" ? "/index.html" : url.pathname;
+    /* Two documents: the landing page at /, the product at /app. Both are
+       static files; /app is spelled without an extension because it is a
+       place in the product, not a file someone should have to know about. */
+    let rel = url.pathname;
+    if (rel === "/") rel = "/index.html";
+    else if (rel === "/app" || rel === "/app/") rel = "/app.html";
     rel = decodeURIComponent(rel).replace(/\.\./g, "");
     const file = path.join(PUBLIC, rel);
     if (!file.startsWith(PUBLIC) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {

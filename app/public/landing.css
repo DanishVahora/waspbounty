@@ -1,0 +1,269 @@
+/* ============================================================================
+   THE LANDING PAGE
+   ----------------------------------------------------------------------------
+   Built entirely on theme.css. No new colours, no new radii, no new fonts —
+   if something here needed a token that did not exist, that was a sign the
+   section was wrong, not that the system was short.
+
+   Two disciplines are at work:
+
+   COURT PAPER gives the look. Warm paper, ink, one amber accent, elevation as
+   a hard offset press rather than a blur, the stamp as the only ornament.
+
+   APPLE'S TYPOGRAPHY RULES give the craft. Tracking is size-specific — large
+   display text gets negative tracking because letters read too far apart as
+   they grow, body sits near zero, and the only uppercase tracking in the whole
+   page is the 11px label. Leading tightens as size grows.
+
+   What is deliberately NOT here: translucency and backdrop-filter. Apple leans
+   on them heavily and they are wrong for this house style — glassmorphism is
+   one of the generated-UI tells this system exists to avoid. The nav is solid
+   paper with a hairline instead.
+   ========================================================================= */
+
+/* ---------- rhythm -------------------------------------------------------
+   Every section hangs off ONE left edge. `.wrap` centres the page, and measure
+   is then constrained inside it with margin-inline-end — never with `auto`,
+   which would re-centre the block and leave the hero floating a hundred pixels
+   right of the band below it. That mismatch is invisible in isolation and
+   glaring the moment you scroll past both. */
+.lp main { position: relative; z-index: 1; }
+.narrow { max-width: 68ch; margin-inline: 0 auto; }
+
+.sec { padding: var(--s11) 0; }
+.sec__h { margin-top: var(--s3); max-width: 20ch; }
+.sec__lede { margin-top: var(--s4); }
+
+/* ---------- nav ----------------------------------------------------------
+   Solid, not translucent. A hairline that only appears once you have scrolled
+   past the hero, so the top of the page is uninterrupted paper. */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--paper);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--d2) var(--ease);
+}
+.nav[data-stuck="true"] { border-bottom-color: var(--rule); }
+.nav__in { display: flex; align-items: center; gap: var(--s5); height: 62px; }
+
+.brand { display: flex; align-items: baseline; gap: var(--s2); text-decoration: none; }
+.brand__mk {
+  display: grid; place-items: center;
+  width: 23px; height: 23px; flex: none;
+  align-self: center;
+  background: var(--amber); color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: var(--r-sm);
+  box-shadow: var(--press);
+  font: 700 12px/1 var(--mono);
+}
+.brand__tx { font-weight: 650; letter-spacing: -.02em; color: var(--ink); }
+.brand__sub {
+  font: 400 var(--t-xs)/1 var(--mono); color: var(--ink-4);
+  /* the tagline is an annotation on the mark, not a second brand */
+}
+.nav__links { display: flex; gap: var(--s5); margin-left: auto; }
+.nav__links a {
+  font-size: var(--t-sm); color: var(--ink-3); text-decoration: none;
+  padding: 4px 0; border-bottom: 1px solid transparent;
+  transition: color var(--d1) var(--ease), border-color var(--d1) var(--ease);
+}
+.nav__links a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* ---------- hero ---------------------------------------------------------- */
+.hero { padding: var(--s11) 0 var(--s10); }
+.hero__case { margin-bottom: var(--s5); }
+.hero__h { margin-bottom: var(--s6); max-width: 15ch; }
+.hero__lede { max-width: 64ch; }
+.hero__lede strong { color: var(--ink); font-weight: 600; }
+.turn, .hero__cta, .hero__note { max-width: 64ch; }
+
+/* The turn — the sentence the whole product rests on, so it is set as a pull
+   quote with a left amber rule: his "mono annotation block" move, scaled up. */
+.turn {
+  margin: var(--s8) 0 var(--s7);
+  padding: var(--s2) 0 var(--s2) var(--s6);
+  border-left: 2px solid var(--amber);
+}
+.turn__q {
+  font-family: var(--serif); font-weight: 450;
+  font-size: clamp(1.3rem, 1rem + 1.1vw, 1.75rem);
+  line-height: 1.32; letter-spacing: -.014em; color: var(--ink);
+  font-variation-settings: "opsz" 32;
+}
+/* The amber highlighter marker behind the words that matter — drawn as a
+   background that sits behind the text baseline, not a full-height block. */
+.turn__q em {
+  font-style: normal; font-weight: 500;
+  background: linear-gradient(to top, var(--amber-wash) 0 .52em, transparent .52em);
+  box-shadow: 0 0 0 2px var(--amber-wash);
+}
+.turn__c {
+  margin-top: var(--s3);
+  font: 400 var(--t-sm)/1.55 var(--mono); color: var(--ink-3);
+}
+
+.hero__cta { display: flex; flex-wrap: wrap; gap: var(--s3); }
+.hero__note { margin-top: var(--s5); font-size: var(--t-xs); color: var(--ink-4); }
+
+/* ---------- bands --------------------------------------------------------- */
+.band { padding: var(--s11) 0; background: var(--paper-2); border-block: 1px solid var(--rule); }
+.band__l { margin-bottom: var(--s3); }
+.band__h { max-width: 22ch; }
+.band__p { margin-top: var(--s5); max-width: 68ch; font-size: 1.0625rem; line-height: 1.62; }
+.band__p strong { color: var(--ink); font-weight: 600; }
+.band--ink { background: var(--ink); border-block-color: var(--ink); }
+.band--ink .label { color: var(--ink-4); }
+.band--ink .band__h { color: var(--paper); }
+.band--ink .band__p { color: #CFC9BF; }
+.band--ink .band__p strong { color: var(--paper); }
+
+/* ---------- the three figures ---------------------------------------------
+   Not three identical cards — that is a tell. They sit on the paper separated
+   by rules, like a table in a report, and the last one is the punchline so it
+   is the only one with the amber mark. */
+.figs {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: var(--s8); border-top: 1.5px solid var(--ink);
+}
+.fig {
+  padding: var(--s5) var(--s5) var(--s5) 0;
+  display: flex; flex-direction: column; gap: 2px;
+  border-right: 1px solid var(--rule);
+}
+.fig:last-child { border-right: 0; }
+.fig:not(:first-child) { padding-left: var(--s5); }
+.fig__n {
+  font-size: clamp(2.1rem, 1.5rem + 2vw, 3rem); font-weight: 600;
+  line-height: 1; letter-spacing: -.035em; color: var(--ink);
+}
+.fig__n i { font-style: normal; font-size: .5em; font-weight: 500; margin-left: 1px; }
+.fig__t { margin-top: var(--s2); font-size: var(--t-sm); color: var(--ink-2); }
+.fig__s { font: 400 var(--t-xs)/1.4 var(--mono); color: var(--ink-4); }
+.fig--zero .fig__n { color: var(--oxide-ink); }
+
+/* ---------- the three verdicts --------------------------------------------
+   A numbered list, because they are not peers — they are a ladder from best
+   to worst outcome, and the order carries meaning. Left edge colour-codes the
+   outcome using the stamp inks already in the system. */
+.verdicts { list-style: none; margin: var(--s8) 0 0; padding: 0; display: grid; gap: var(--s4); }
+.verdict {
+  background: var(--card); border: var(--bd); border-left: 3px solid var(--rule-2);
+  border-radius: var(--r); padding: var(--s6);
+}
+.verdict--valid { border-left-color: var(--seal); }
+.verdict--good  { border-left-color: var(--indigo); }
+.verdict--slop  { border-left-color: var(--oxide); }
+.verdict .h3 { margin: var(--s4) 0 var(--s2); }
+.verdict p { color: var(--ink-2); max-width: 70ch; }
+.verdict p strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- mutual bail ---------------------------------------------------- */
+.mutual {
+  display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--s9); align-items: center; margin-top: var(--s7);
+}
+.mutual__tx .h2 { margin: var(--s3) 0 var(--s4); }
+.mutual__tx p { max-width: 58ch; }
+.mutual__tx p strong { color: var(--ink); font-weight: 600; }
+.mutual__tx .aside { margin-top: var(--s4); }
+
+/* A balance, drawn in CSS: two equal weights on one pin. No illustration,
+   no icon font — the shape IS the argument. */
+.scale { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s3); }
+.scale__side {
+  display: flex; flex-direction: column; gap: var(--s1); align-items: center;
+  padding: var(--s5) var(--s3);
+  background: var(--card); border: 1.5px solid var(--ink); border-radius: var(--r);
+  box-shadow: var(--press);
+}
+.scale__v { font-size: var(--t-h3); font-weight: 600; color: var(--ink); }
+.scale__pin { width: 26px; height: 1.5px; background: var(--ink); }
+
+/* ---------- the three doors ------------------------------------------------
+   The wayfinding section: every screen should answer "where can I go, and
+   what is there". Each door says who it is for in the first person, because
+   "Report" and "Desk" are our words for it, not the visitor's. */
+.doors {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4); margin-top: var(--s8);
+}
+.door {
+  display: flex; flex-direction: column;
+  padding: var(--s6); text-decoration: none;
+  background: var(--card); border: 1.5px solid var(--ink);
+  border-radius: var(--r); box-shadow: var(--press);
+  transition: transform var(--d1) var(--ease), box-shadow var(--d1) var(--ease);
+}
+.door:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); }
+/* Feedback on press, not on release — the press reads as the paper being
+   pushed down onto the desk. */
+.door:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+.door__n { color: var(--ink-4); }
+.door__h { margin: var(--s4) 0 var(--s3); }
+.door__p { color: var(--ink-2); font-size: var(--t-sm); line-height: 1.6; flex: 1; }
+.door__go {
+  margin-top: var(--s5); font-size: var(--t-sm); font-weight: 560; color: var(--ink);
+  display: inline-flex; gap: 6px; align-items: center;
+}
+.door:hover .door__go span { transform: translateX(3px); }
+.door__go span { transition: transform var(--d2) var(--ease); display: inline-block; }
+
+/* ---------- live proof ------------------------------------------------------ */
+.sec--live { background: var(--paper-2); border-block: 1px solid var(--rule); }
+.proofs {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4); margin-top: var(--s8);
+}
+.proof {
+  background: var(--card); border: var(--bd); border-radius: var(--r);
+  padding: var(--s5); display: flex; flex-direction: column; gap: var(--s1);
+}
+.proof__h { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s3); }
+.proof__n { font-size: 1.6rem; font-weight: 600; letter-spacing: -.03em; color: var(--ink); line-height: 1.1; }
+.proof__t { font-size: var(--t-sm); color: var(--ink-2); }
+.proof__a { margin-top: var(--s3); font-size: var(--t-xs); color: var(--ink-3); text-decoration: none; border-bottom: 1px dotted var(--rule-2); align-self: flex-start; }
+.proof__a:hover { color: var(--amber-ink); border-bottom-style: solid; }
+.proof[data-state="down"] .proof__n { color: var(--ink-4); }
+
+/* ---------- close ----------------------------------------------------------- */
+.close { padding: var(--s11) 0; }
+.close__q { max-width: 20ch; }
+.close__a { margin-top: var(--s5); font-size: 1.0625rem; line-height: 1.62; max-width: 62ch; color: var(--ink-2); }
+.close__a strong { color: var(--ink); font-weight: 600; }
+.close__cta { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s7); }
+
+/* ---------- foot ------------------------------------------------------------- */
+.foot { border-top: 1px solid var(--rule); padding: var(--s6) 0; }
+.foot__in { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; }
+.foot__c { font-size: var(--t-xs); color: var(--ink-4); }
+.foot__l { display: flex; gap: var(--s5); }
+.foot__l a { font-size: var(--t-sm); color: var(--ink-3); text-decoration: none; }
+.foot__l a:hover { color: var(--ink); text-decoration: underline; }
+
+/* ---------- no entrance animation, on purpose ----------------------------------
+   There was a scroll-triggered fade-up here. It is gone, for two reasons.
+
+   It broke: anything below the fold stayed at opacity 0 when the observer did
+   not fire, so three whole sections rendered blank. A decoration that can hide
+   your content has a failure mode worse than anything it adds.
+
+   And it was the wrong instinct anyway. Fade-up-on-scroll is one of the
+   generated-page tells this system exists to avoid, and it makes a reader wait
+   for prose that was already loaded. The motion in this page is where motion
+   belongs — under the pointer, on the doors and buttons, where it is feedback
+   for something the reader actually did. */
+
+/* ---------- responsive ---------------------------------------------------------- */
+@media (max-width: 900px) {
+  .mutual { grid-template-columns: minmax(0, 1fr); gap: var(--s7); }
+  .doors, .proofs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav__links { display: none; }
+}
+@media (max-width: 640px) {
+  .sec, .band, .close, .hero { padding: var(--s9) 0; }
+  .figs { grid-template-columns: minmax(0, 1fr); }
+  .fig { border-right: 0; border-bottom: 1px solid var(--rule); padding-left: 0 !important; }
+  .fig:last-child { border-bottom: 0; }
+  .doors, .proofs { grid-template-columns: minmax(0, 1fr); }
+  .brand__sub { display: none; }
+}
