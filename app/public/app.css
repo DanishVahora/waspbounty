@@ -19,10 +19,14 @@
 body{font-size:var(--t-body);line-height:1.6}
 
 /* ---------- shell ---------------------------------------------------------- */
+/* Solid paper, not frosted glass. This used to carry a backdrop-filter blur;
+   it is gone, because glassmorphism is one of the generated-UI tells this
+   system exists to avoid, and because the landing page's header is solid —
+   two headers on the same product disagreeing about what a header is made of
+   is the kind of seam people feel without being able to name. */
 .top{
   position:sticky;top:0;z-index:40;
-  background:color-mix(in srgb,var(--paper) 92%,transparent);
-  backdrop-filter:saturate(1.1) blur(6px);
+  background:var(--paper);
   border-bottom:1px solid var(--rule);
 }
 /* The nav sits on the same gutter as the content column, and widens with it.
@@ -46,15 +50,46 @@ body[data-view="board"] .top__in{max-width:1120px}
 .brand__n{font-weight:680;letter-spacing:-.028em;font-size:1.0625rem;color:var(--ink)}
 .brand__d{font-family:var(--mono);color:var(--ink-4);font-size:.6875rem;letter-spacing:.04em;font-variant-numeric:tabular-nums;white-space:nowrap}
 
-/* tabs — a quiet segmented control, not a navbar */
-.tabs{display:flex;gap:3px;margin-left:auto;background:var(--paper-2);padding:3px;border-radius:var(--r-pill);border:1px solid var(--rule)}
+/* The brand mark presses into the paper, exactly as on the landing page. */
+.brand__z{box-shadow:var(--press)}
+
+/* TABS — two lines each, and the second line is the point.
+   "Triage desk" and "Disclosure" are our names for these screens. The small
+   line under each one says who it is for in the visitor's words, so nobody
+   has to open all four to find out which is theirs. A label you need to
+   explain is a weak mapping; here the explanation IS the label. */
+.tabs{display:flex;gap:2px;margin-left:auto;background:var(--paper-2);padding:3px;border-radius:var(--r);border:1px solid var(--rule)}
 .tab{
-  padding:7px 15px;border-radius:var(--r-pill);font-size:var(--t-sm);font-weight:560;
+  display:flex;flex-direction:column;gap:1px;align-items:flex-start;
+  padding:6px 13px;border-radius:var(--r-sm);
   color:var(--ink-3);white-space:nowrap;
   transition:color var(--d1) var(--ease),background var(--d1) var(--ease);
 }
+.tab__t{font-size:var(--t-sm);font-weight:560;letter-spacing:-.01em;line-height:1.25}
+.tab__d{font-family:var(--mono);font-size:9.5px;letter-spacing:.03em;color:var(--ink-4);line-height:1.2}
 .tab:hover{color:var(--ink)}
+.tab:hover .tab__d{color:var(--ink-3)}
 .tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(18,18,18,.07)}
+.tab[aria-selected="true"] .tab__d{color:var(--amber-ink)}
+
+/* Backend status, on every screen rather than buried in one tab. Three dots:
+   you should be able to tell at a glance whether what you are looking at is
+   real, without reading a word. */
+.top__live{display:flex;gap:var(--s4);flex-shrink:0;margin-left:var(--s2)}
+.dot{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:9.5px;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--ink-4);white-space:nowrap;
+}
+.dot i{
+  width:6px;height:6px;border-radius:50%;flex:none;
+  background:var(--ink-4);border:1px solid rgba(18,18,18,.18);
+  transition:background var(--d2) var(--ease);
+}
+.dot[data-state="up"]{color:var(--ink-3)}
+.dot[data-state="up"] i{background:var(--seal)}
+.dot[data-state="warn"] i{background:var(--amber)}
+.dot[data-state="down"] i{background:var(--oxide)}
 @media (max-width:680px){
   .top__in{flex-wrap:wrap;gap:var(--s3)}
   .tabs{margin-left:0;width:100%;justify-content:space-between}

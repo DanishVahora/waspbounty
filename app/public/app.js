@@ -8,17 +8,33 @@ let LIVE = null;
 let QUEUE = [];
 let current = null;
 
-/* ---------- chrome --------------------------------------------------------- */
-function show(view) {
+/* ---------- chrome ---------------------------------------------------------
+   The four screens are addressable: /app#desk opens the desk. The landing page
+   links straight into each one, so without this every door on the front page
+   would quietly dump the visitor on the report form — which is exactly the
+   kind of broken path that makes an app feel untrustworthy. */
+const VIEWS = ["report", "desk", "lanes", "board"];
+
+function show(view, { push = true } = {}) {
+  if (!VIEWS.includes(view)) view = "report";
   document.body.dataset.view = view;
   $$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.view === view)));
   $$(".view").forEach((v) => { v.hidden = v.id !== "view-" + view; });
   if (view === "desk") loadQueue();
   if (view === "board") loadBoard();
   if (view === "lanes") loadLanes();
+
+  /* replaceState, not pushState: switching tabs should not stack up history
+     entries that make Back feel broken. Back leaves the app, as it should. */
+  if (push && location.hash.slice(1) !== view) {
+    history.replaceState(null, "", `#${view}`);
+  }
   window.scrollTo({ top: 0, behavior: "instant" });
 }
+
 $$(".tab").forEach((t) => t.addEventListener("click", () => show(t.dataset.view)));
+addEventListener("hashchange", () => show(location.hash.slice(1), { push: false }));
+show(location.hash.slice(1) || "report", { push: false });
 
 let toastTimer;
 function toast(msg) {
@@ -38,12 +54,21 @@ $$(".lane").forEach((l) => l.addEventListener("click", () => {
 $("#submit").addEventListener("click", () => {
   const lane = $('.lane[aria-pressed="true"]')?.dataset.lane ?? "priority";
   const note = $("#submitNote");
+
   if (lane === "free") {
-    note.textContent = "Queued for machine triage. No bond held, no wallet needed.";
-    toast("Report filed — free lane. Nothing was charged.");
+    note.textContent = "Queued for the enclave. No bond held, no wallet needed, no account.";
+    toast("Filed on the free lane. Nothing was charged.");
   } else {
-    note.textContent = "Bond of 0.01 ETH would be escrowed here once the contract is deployed.";
-    toast("Priority lane selected — contract not deployed yet, so nothing was signed.");
+    /* Quote the real number from the chain, and be exact about what did NOT
+       happen. The app never signs for anyone: posting the bond is a
+       transaction the reporter sends from their own wallet. Saying "escrowed"
+       here would claim a transfer that has not occurred. */
+    const q = LAST_QUOTE;
+    const amount = q ? (q.waived ? "no bond" : `${q.bond} ${TOKEN}`) : "your bond";
+    note.textContent = q?.waived
+      ? `Queued, and ${q.reason.toLowerCase()} — so there is nothing to sign.`
+      : `Next step is ${amount}, signed from your own wallet. We never hold your key, so nothing has moved yet.`;
+    toast(q?.waived ? "Filed — no bond was due." : `Filed. ${amount} to post when you sign.`);
   }
   setTimeout(() => show("desk"), 900);
 });
@@ -85,6 +110,19 @@ function paintStatus() {
     m.hidden = false;
     m.className = z.connected ? "pill pill--live" : "pill pill--sim";
     m.textContent = `${z.model} · ${z.verifiability}${z.teeType ? "/" + z.teeType : ""}${z.connected ? "" : " · no key"}`;
+  }
+
+  /* The three header dots. Green only ever means "this answered just now" —
+     if it is amber or red, something on screen is not what it claims to be,
+     and the user should be able to see that without opening a tab. */
+  const state = {
+    arkiv: !a.connected ? "down" : a.funded ? "up" : "warn",
+    chain: LIVE.contracts?.connected ? "up" : "down",
+    zerog: z.connected ? "up" : z.keyPresent ? "warn" : "down",
+  };
+  for (const [k, v] of Object.entries(state)) {
+    const el = $(`.dot[data-live="${k}"]`);
+    if (el) el.dataset.state = v;
   }
 
   /* the chain pill links to the contract, so the claim is one click from proof */
@@ -289,9 +327,11 @@ async function loadBoard() {
   }
 }
 
-/* ---------- boot ----------------------------------------------------------- */
+/* ---------- boot -----------------------------------------------------------
+   No show() call here. The initial view is chosen from the URL hash up top,
+   so /app#desk opens the desk. A hard show("report") used to sit on this line
+   and silently overrode it, which broke every deep link from the front page. */
 fetch("/api/health").then((r) => r.json()).then((h) => { LIVE = h; paintStatus(); }).catch(() => {});
-show("report");
 
 /* ===========================================================================
    GITHUB — a project's own record, measured live.
@@ -470,10 +510,16 @@ $("#laneMeasure")?.addEventListener("click", async () => {
 const TOKEN = "WASP";
 const isAddress = (s) => /^0x[0-9a-fA-F]{40}$/.test(s.trim());
 
+/* The last quote the chain gave us, so the submit button can state the real
+   amount instead of a number typed into a string. Null until someone enters
+   an address — and the copy has to handle that, rather than guessing. */
+let LAST_QUOTE = null;
+
 let bondController = null;
 let bondTimer = null;
 
 function paintBondDefault() {
+  LAST_QUOTE = null;
   const c = LIVE?.contracts;
   const panel = $("#bondPanel");
   if (!c?.connected) { panel.hidden = true; return; }
@@ -488,6 +534,7 @@ function paintBondDefault() {
 }
 
 function paintBond(q) {
+  LAST_QUOTE = q;
   const panel = $("#bondPanel");
   panel.hidden = false;
   panel.classList.remove("bondq--busy");

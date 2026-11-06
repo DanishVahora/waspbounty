@@ -20,16 +20,37 @@
 
 <header class="top">
   <div class="top__in">
-    <a class="brand" href="#" aria-label="WaspBounty home">
+    <!-- Wayfinding rule: never trap anyone. The mark goes home, to the page
+         that explains what this is, rather than to a dead "#". -->
+    <a class="brand" href="/" aria-label="Wasp Bounty — back to the front page">
       <span class="brand__z" aria-hidden="true">W</span>
       <span class="brand__n">WaspBounty</span>
       <span class="brand__d" aria-hidden="true">bail for bug reports</span>
     </a>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-view="report" aria-selected="true">Report</button>
-      <button class="tab" role="tab" data-view="desk" aria-selected="false">Triage desk</button>
-      <button class="tab" role="tab" data-view="lanes" aria-selected="false">Projects</button>
-      <button class="tab" role="tab" data-view="board" aria-selected="false">Disclosure board</button>
+
+    <!-- Each tab says what it IS and who it is for. "Desk" and "Board" are our
+         words for these screens; the second line is the visitor's. -->
+    <div class="tabs" role="tablist" aria-label="Where you are">
+      <button class="tab" role="tab" data-view="report" aria-selected="true">
+        <span class="tab__t">Report</span><span class="tab__d">you found something</span>
+      </button>
+      <button class="tab" role="tab" data-view="desk" aria-selected="false">
+        <span class="tab__t">Triage desk</span><span class="tab__d">you maintain it</span>
+      </button>
+      <button class="tab" role="tab" data-view="lanes" aria-selected="false">
+        <span class="tab__t">Projects</span><span class="tab__d">who is covered</span>
+      </button>
+      <button class="tab" role="tab" data-view="board" aria-selected="false">
+        <span class="tab__t">Disclosure</span><span class="tab__d">the 90-day clock</span>
+      </button>
+    </div>
+
+    <!-- What is actually live, on every screen rather than only the desk.
+         If a backend is down the whole app should say so, not one tab. -->
+    <div class="top__live" id="topLive" aria-label="Backend status">
+      <span class="dot" data-live="arkiv" title="Arkiv"><i></i>Arkiv</span>
+      <span class="dot" data-live="chain" title="Sepolia"><i></i>Chain</span>
+      <span class="dot" data-live="zerog" title="0G enclave"><i></i>Enclave</span>
     </div>
   </div>
 </header>
